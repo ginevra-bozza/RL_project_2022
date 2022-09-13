@@ -1,5 +1,6 @@
 library ieee;
-
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
 
 entity project_reti_logiche is
     port (
@@ -14,3 +15,12 @@ entity project_reti_logiche is
     o_data : out std_logic_vector (7 downto 0)      --o_data è il segnale (vettore) di uscita dal componente verso la memoria.
     );
     end project_reti_logiche;
+
+    architecture behaviour of project_reti_logiche is
+        type state_type is (zero_zero, zero_one, one_zero, one_one); --FSM da specifica
+        type set_program_state is (not_started,)
+        Integer count <= 0;
+
+        begin
+            
+        end behaviour;

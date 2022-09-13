@@ -30,6 +30,7 @@ Inizio sequenza W --> indirizzo 1 (dimensione massima input 255 byte)
 
 Inizio sequenza Z --> indirizzo 1000
 
+Punto 1
 Segnali START e DONE - sequenza
 START = 1, DONE = 0 --> modulo parte
 START = 1, DONE = 1 --> Termine computazione
