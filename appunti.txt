@@ -1,0 +1,48 @@
+punti salienti specifica
+
+-- input sequenza di W parole (8 bit per parola)
+-- output sequenza di z parole (8 bit per parola)
+
+serializzare le parole in ingresso, applicando il codice convuluzionale 1/2 (codifica un bit con 2 bit)
+generiamo in output un flusso Y ottenuto come concatenamento alternato dei due bit in uscita
+
+il bit in ingresso viene quindi codificato con 2 bit
+chiamando Uk il primo generiamo p1k e p2k concatenati per formare Yk
+vengono concatenati 1 bit per volta, quindi si alternano
+
+Z è la parallelizzazione su 8 bit del flusso continuo Yk
+
+Lunghezza flusso U = 8*W
+
+Lunghezza flusso Y = 8*W*2
+
+lunghezza flusso Z = 2*W
+
+DATI
+La sequenza deve essere letta da una memoria con indirizzamento al byte dove è memorizzato
+una parola <-> un byte
+
+la sequenza di byte è scomposta nella sequenza U di bit da elaborare
+
+Qiantità sequenza di parole W --> indirizzo 0
+
+Inizio sequenza W --> indirizzo 1 (dimensione massima input 255 byte)
+
+Inizio sequenza Z --> indirizzo 1000
+
+Segnali START e DONE - sequenza
+START = 1, DONE = 0 --> modulo parte
+START = 1, DONE = 1 --> Termine computazione
+se START = 0 -> DONE = 0 
+se DONE non è ancora a 0, START non può essere riportato a 1
+se START = 1 ricomincia la codifica; 
+
+Termine computazione -> Done = 1
+
+Punto 2
+A ogni nuova codifica va riportata la FSM allo stato iniziale
+e le sequenze agli indirizzi della specifica
+
+Punto 3
+Prima della prima codifica dare il RESET al modulo
+poi dalla successiva non è obbligatorio il RESET
