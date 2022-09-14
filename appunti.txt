@@ -47,3 +47,9 @@ e le sequenze agli indirizzi della specifica
 Punto 3
 Prima della prima codifica dare il RESET al modulo
 poi dalla successiva non è obbligatorio il RESET
+
+FSM set_program_state
+Gestisce la specifica del punto 1
+- not_started: prima esecuzione
+- computation_terminated: computazione terminata
+- done_reset
