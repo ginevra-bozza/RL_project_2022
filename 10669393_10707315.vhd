@@ -18,9 +18,13 @@ entity project_reti_logiche is
 
     architecture behaviour of project_reti_logiche is
         type state_type is (zero_zero, zero_one, one_zero, one_one); --FSM da specifica
-        type set_program_state is (not_started,)
-        Integer count <= 0;
+        type set_program_state is (not_started, computation_terminated, done_reset) --Nostra FSM per gestire done e reset
+
+        signal current_state,next_state: state_type;
+
+
+
 
         begin
-            
+            rising_edge(i_clk)
         end behaviour;
