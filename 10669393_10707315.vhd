@@ -18,13 +18,103 @@ entity project_reti_logiche is
 
     architecture behaviour of project_reti_logiche is
         type state_type is (zero_zero, zero_one, one_zero, one_one); --FSM da specifica
-        type set_program_state is (not_started, computation_terminated, done_reset) --Nostra FSM per gestire done e reset
+        type set_program_state is (not_started, computation_terminated, done_reset,do_not_restart) --Nostra FSM per gestire done e reset
 
         signal current_state,next_state: state_type;
-
-
-
+        signal program_state: set_program_state;
+        signal current_i_data: std_logic_vector(7 downto 0);
+        signal current_y_data: std_logic_vector(15 downto 0);
 
         begin
-            rising_edge(i_clk)
+            sync_start: process(i_clk, i_rst)
+            begin
+                if (i_rst = '1' and o_done = '0') then
+                    program_state <= not_started;
+                elsif(i-rst = '1' and o_done = '1') then
+                    program_state <= computation_terminated;
+                elsif(i-rst = '0' and o_done = '1') then
+                    program_state <= do_not_restart;
+                --non gestita perchè non fa nulla
+            end sync_start;
+
+            convolutore: process(current_state, next_state, current_i_data, current_y_data)
+            begin
+                for k in 7 downto 0 loop
+                    case current_state is
+                        when zero_zero => 
+                            if(current_i_data(k) = '0') then
+                                next_state <= zero_zero;
+                                if(k mod 2 = '0') then 
+                                    current_y_data(2k) <= '0';
+                                    current_y_data(2k+2) <= '0';
+                                else
+                                    current_y_data(2k-1) <= '0';
+                                    current_y_data(2k+1) <= '0';
+                                
+                            elsif(current_i_data(k) = '1') then
+                                next_state = one_zero;
+                                if(k mod 2 = '0') then 
+                                    current_y_data(2k) <= '1';
+                                    current_y_data(2k+2) <= '1';
+                                else
+                                    current_y_data(2k-1) <= '1';
+                                    current_y_data(2k+1) <= '1';
+                                
+                        when one_zero => 
+                            if(current_i_data(k) = '0') then
+                                next_state <= zero_one;
+                                if(k mod 2 = '0') then 
+                                    current_y_data(2k) <= '0';
+                                    current_y_data(2k+2) <= '1';
+                                else
+                                    current_y_data(2k-1) <= '0';
+                                    current_y_data(2k+1) <= '1';
+                                
+                            elsif(current_i_data(k) = '1') then
+                                next_state = one_one;
+                                if(k mod 2 = '0') then 
+                                    current_y_data(2k) <= '1';
+                                    current_y_data(2k+2) <= '0';
+                                else
+                                    current_y_data(2k-1) <= '1';
+                                    current_y_data(2k+1) <= '0';
+
+                        when one_one => 
+                            if(current_i_data(k) = '0') then
+                                next_state <= zero_one;
+                                if(k mod 2 = '0') then 
+                                    current_y_data(2k) <= '1';
+                                    current_y_data(2k+2) <= '0';
+                                else
+                                    current_y_data(2k-1) <= '1';
+                                    current_y_data(2k+1) <= '0';
+                                
+                            elsif(current_i_data(k) = '1') then
+                                next_state = one_one;
+                                if(k mod 2 = '0') then 
+                                    current_y_data(2k) <= '0';
+                                    current_y_data(2k+2) <= '1';
+                                else
+                                    current_y_data(2k-1) <= '0';
+                                    current_y_data(2k+1) <= '1';
+
+                        when zero_one => 
+                            if(current_i_data(k) = '0') then
+                                next_state <= zero_zero;
+                                if(k mod 2 = '0') then 
+                                    current_y_data(2k) <= '1';
+                                    current_y_data(2k+2) <= '1';
+                                else
+                                    current_y_data(2k-1) <= '1';
+                                    current_y_data(2k+1) <= '1';
+                                
+                            elsif(current_i_data(k) = '1') then
+                                next_state = one_zero;
+                                if(k mod 2 = '0') then 
+                                    current_y_data(2k) <= '0';
+                                    current_y_data(2k+2) <= '0';
+                                else
+                                    current_y_data(2k-1) <= '0';
+                                    current_y_data(2k+1) <= '0';
+            end convolutore;
         end behaviour;
