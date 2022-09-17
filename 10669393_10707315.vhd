@@ -22,11 +22,13 @@ entity project_reti_logiche is
 
         signal current_state,next_state: state_type;
         signal program_state: set_program_state;
-        signal current_i_data: std_logic_vector(7 downto 0);
-        signal current_y_data: std_logic_vector(15 downto 0);
+        signal current_i_data: std_logic_vector(7 downto 0)         := "00000000";
+        signal current_y_data: std_logic_vector(15 downto 0)        := "0000000000000000";
+        signal current_address_read: std_logic_vector(15 downto 0)  := "0000000000000000";
+        signal current_address_write: std_logic_vector(15 downto 0) := "0000001111101000"; 
 
         begin
-            sync_start: process(i_clk, i_rst)
+            sync_start: process( i_clk, i_start, o_done, i_rst )
             begin
                 if (i_rst = '1' and o_done = '0') then
                     program_state <= not_started;
