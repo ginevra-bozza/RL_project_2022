@@ -47,76 +47,76 @@ entity project_reti_logiche is
                             if(current_i_data(k) = '0') then
                                 next_state <= zero_zero;
                                 if(k mod 2 = '0') then 
-                                    current_y_data(2k) <= '0';
-                                    current_y_data(2k+2) <= '0';
+                                    current_y_data(k + k) <= '0';
+                                    current_y_data(k + k + 2) <= '0';
                                 else
-                                    current_y_data(2k-1) <= '0';
-                                    current_y_data(2k+1) <= '0';
+                                    current_y_data(k + k - 1) <= '0';
+                                    current_y_data(k + k + 1) <= '0';
                                 
                             elsif(current_i_data(k) = '1') then
                                 next_state = one_zero;
                                 if(k mod 2 = '0') then 
-                                    current_y_data(2k) <= '1';
-                                    current_y_data(2k+2) <= '1';
+                                    current_y_data(k + k) <= '1';
+                                    current_y_data(k + k + 2) <= '1';
                                 else
-                                    current_y_data(2k-1) <= '1';
-                                    current_y_data(2k+1) <= '1';
+                                    current_y_data(k + k - 1) <= '1';
+                                    current_y_data(k + k + 1) <= '1';
                                 
                         when one_zero => 
                             if(current_i_data(k) = '0') then
                                 next_state <= zero_one;
                                 if(k mod 2 = '0') then 
-                                    current_y_data(2k) <= '0';
-                                    current_y_data(2k+2) <= '1';
+                                    current_y_data(k + k) <= '0';
+                                    current_y_data(k + k + 2) <= '1';
                                 else
-                                    current_y_data(2k-1) <= '0';
-                                    current_y_data(2k+1) <= '1';
+                                    current_y_data(k + k - 1) <= '0';
+                                    current_y_data(k + k + 1) <= '1';
                                 
                             elsif(current_i_data(k) = '1') then
                                 next_state = one_one;
                                 if(k mod 2 = '0') then 
-                                    current_y_data(2k) <= '1';
-                                    current_y_data(2k+2) <= '0';
+                                    current_y_data(k + k) <= '1';
+                                    current_y_data(k + k + 2) <= '0';
                                 else
-                                    current_y_data(2k-1) <= '1';
-                                    current_y_data(2k+1) <= '0';
+                                    current_y_data(k + k - 1) <= '1';
+                                    current_y_data(k + k + 1) <= '0';
 
                         when one_one => 
                             if(current_i_data(k) = '0') then
                                 next_state <= zero_one;
                                 if(k mod 2 = '0') then 
-                                    current_y_data(2k) <= '1';
-                                    current_y_data(2k+2) <= '0';
+                                    current_y_data(k + k) <= '1';
+                                    current_y_data(k + k + 2) <= '0';
                                 else
-                                    current_y_data(2k-1) <= '1';
-                                    current_y_data(2k+1) <= '0';
+                                    current_y_data(k + k - 1) <= '1';
+                                    current_y_data(k + k + 1) <= '0';
                                 
                             elsif(current_i_data(k) = '1') then
                                 next_state = one_one;
                                 if(k mod 2 = '0') then 
-                                    current_y_data(2k) <= '0';
-                                    current_y_data(2k+2) <= '1';
+                                    current_y_data(k + k) <= '0';
+                                    current_y_data(k + k + 2) <= '1';
                                 else
-                                    current_y_data(2k-1) <= '0';
-                                    current_y_data(2k+1) <= '1';
+                                    current_y_data(k + k - 1) <= '0';
+                                    current_y_data(k + k + 1) <= '1';
 
                         when zero_one => 
                             if(current_i_data(k) = '0') then
                                 next_state <= zero_zero;
                                 if(k mod 2 = '0') then 
-                                    current_y_data(2k) <= '1';
-                                    current_y_data(2k+2) <= '1';
+                                    current_y_data(k + k) <= '1';
+                                    current_y_data(k + k + 2) <= '1';
                                 else
-                                    current_y_data(2k-1) <= '1';
-                                    current_y_data(2k+1) <= '1';
+                                    current_y_data(k + k - 1) <= '1';
+                                    current_y_data(k + k + 1) <= '1';
                                 
                             elsif(current_i_data(k) = '1') then
                                 next_state = one_zero;
                                 if(k mod 2 = '0') then 
-                                    current_y_data(2k) <= '0';
-                                    current_y_data(2k+2) <= '0';
+                                    current_y_data(k + k) <= '0';
+                                    current_y_data(k + k + 2) <= '0';
                                 else
-                                    current_y_data(2k-1) <= '0';
-                                    current_y_data(2k+1) <= '0';
+                                    current_y_data(k + k - 1) <= '0';
+                                    current_y_data(k + k + 1) <= '0';
             end convolutore;
         end behaviour;

@@ -1,0 +1,5 @@
+dividere il progetto in datapath ed fsm
+
+aggiungere un multiplexer per gestire il funzionamento per più flussi di DATI
+gestire i segnali per ogni sto della FSM en =1 e cose così
+gestire memoria asincrona e sincrona
