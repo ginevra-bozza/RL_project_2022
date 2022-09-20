@@ -18,33 +18,58 @@ entity project_reti_logiche is
 
     architecture behaviour of project_reti_logiche is
         type state_type is (zero_zero, zero_one, one_zero, one_one); --FSM da specifica
-        type set_program_state is (not_started, computation_terminated, done_reset,do_not_restart) --Nostra FSM per gestire done e reset
+        type set_program_state is (not_started, started, computation_terminated); --Nostra FSM per gestire done e reset
 
         signal current_state,next_state: state_type;
         signal program_state: set_program_state;
-        signal current_i_data: std_logic_vector(7 downto 0)         := "00000000";
+        
+        --segnali su cui lavoriamo, che vengono modificati
         signal current_y_data: std_logic_vector(15 downto 0)        := "0000000000000000";
-        signal current_address_read: std_logic_vector(15 downto 0)  := "0000000000000000";
-        signal current_address_write: std_logic_vector(15 downto 0) := "0000001111101000"; 
-
+        signal current_address_read: std_logic_vector(15 downto 0);
+        signal current_address_write: std_logic_vector(15 downto 0); 
+        signal intermediate_o_data: std_logic_vector(7 downto 0);
+        
+        --reset segnali di lettura e scrittura
+        signal rst_address_read: std_logic_vector(15 downto 0)  := "0000000000000000";
+        signal rst_address_write: std_logic_vector(15 downto 0) := "0000001111101000"; 
+        
         begin
-            sync_start: process( i_clk, i_start, o_done, i_rst )
+            sync_start: process( i_clk, i_rst ,i_start, o_done, o_address)
             begin
-                if (i_rst = '1' and o_done = '0') then
-                    program_state <= not_started;
-                elsif(i-rst = '1' and o_done = '1') then
-                    program_state <= computation_terminated;
-                elsif(i-rst = '0' and o_done = '1') then
-                    program_state <= do_not_restart;
-                --non gestita perchè non fa nulla
+                if(i_rst) then
+                    current_address_read <= rst_address_read;
+                    current_address_write <= rst_address_write;
+                    o_en <= '0';
+                    o_we <= '0';
+                    o_data <= "00000000";
+                    current_state = zero_zero;
+                    program_state = not_started;
+                elsif(RISING_EDGE(i_clk)) then
+                    if(i_start = '1' and o_done = '0') then
+                        program_state = started;
+                        o_en = '1';
+                        current_address_read <= current_address_read + "00001000";
+                        o_address <= current_address_read;
+                    elsif(i_start = '1' and o_done = '1') then
+                        program_state = computation_terminated;
+                        o_en = '1';
+                        o_we = '1';
+                        current_address_write <= current_address_write + "00001000";
+                        o_address <= current_address_write;
+                    elsif(i_start = '0' and o_done = '0') then
+                        program_state = not_started;
+                        current_state = zero_zero;
+                        o_en = '0';
+                        o_we = '0';
+                
             end sync_start;
 
-            convolutore: process(current_state, next_state, current_i_data, current_y_data)
+            convolutore: process(o_en, o_we)
             begin
                 for k in 7 downto 0 loop
                     case current_state is
                         when zero_zero => 
-                            if(current_i_data(k) = '0') then
+                            if(i_data(k) = '0') then
                                 next_state <= zero_zero;
                                 if(k mod 2 = '0') then 
                                     current_y_data(k + k) <= '0';
@@ -53,7 +78,7 @@ entity project_reti_logiche is
                                     current_y_data(k + k - 1) <= '0';
                                     current_y_data(k + k + 1) <= '0';
                                 
-                            elsif(current_i_data(k) = '1') then
+                            elsif(i_data(k) = '1') then
                                 next_state = one_zero;
                                 if(k mod 2 = '0') then 
                                     current_y_data(k + k) <= '1';
@@ -63,7 +88,7 @@ entity project_reti_logiche is
                                     current_y_data(k + k + 1) <= '1';
                                 
                         when one_zero => 
-                            if(current_i_data(k) = '0') then
+                            if(i_data(k) = '0') then
                                 next_state <= zero_one;
                                 if(k mod 2 = '0') then 
                                     current_y_data(k + k) <= '0';
@@ -72,7 +97,7 @@ entity project_reti_logiche is
                                     current_y_data(k + k - 1) <= '0';
                                     current_y_data(k + k + 1) <= '1';
                                 
-                            elsif(current_i_data(k) = '1') then
+                            elsif(i_data(k) = '1') then
                                 next_state = one_one;
                                 if(k mod 2 = '0') then 
                                     current_y_data(k + k) <= '1';
@@ -82,7 +107,7 @@ entity project_reti_logiche is
                                     current_y_data(k + k + 1) <= '0';
 
                         when one_one => 
-                            if(current_i_data(k) = '0') then
+                            if(i_data(k) = '0') then
                                 next_state <= zero_one;
                                 if(k mod 2 = '0') then 
                                     current_y_data(k + k) <= '1';
@@ -91,7 +116,7 @@ entity project_reti_logiche is
                                     current_y_data(k + k - 1) <= '1';
                                     current_y_data(k + k + 1) <= '0';
                                 
-                            elsif(current_i_data(k) = '1') then
+                            elsif(i_data(k) = '1') then
                                 next_state = one_one;
                                 if(k mod 2 = '0') then 
                                     current_y_data(k + k) <= '0';
@@ -101,7 +126,7 @@ entity project_reti_logiche is
                                     current_y_data(k + k + 1) <= '1';
 
                         when zero_one => 
-                            if(current_i_data(k) = '0') then
+                            if(i_data(k) = '0') then
                                 next_state <= zero_zero;
                                 if(k mod 2 = '0') then 
                                     current_y_data(k + k) <= '1';
@@ -110,7 +135,7 @@ entity project_reti_logiche is
                                     current_y_data(k + k - 1) <= '1';
                                     current_y_data(k + k + 1) <= '1';
                                 
-                            elsif(current_i_data(k) = '1') then
+                            elsif(i_data(k) = '1') then
                                 next_state = one_zero;
                                 if(k mod 2 = '0') then 
                                     current_y_data(k + k) <= '0';
@@ -118,5 +143,25 @@ entity project_reti_logiche is
                                 else
                                     current_y_data(k + k - 1) <= '0';
                                     current_y_data(k + k + 1) <= '0';
+                    end loop;
+
             end convolutore;
+
+            sym_mux: process(o_we,o_data)
+            begin
+                if(o_we = '1' and o_data = "00000000") then
+                    s = '0';
+                if(s = '0') then
+                    for k in 7 downto 0 loop
+                        intermediate_o_data(k) <= current_y_data(k);
+                        end loop;
+                o_data <= intermediate_o_data;
+                s <= '1';
+                if(s = '1') then
+                    for k in 7 downto 0 loop
+                        intermediate_o_data(k) <= current_y_data(k + 8);
+                        end loop;
+                s <= '0'; 
+                o_data <= intermediate_o_data;  
+            end sym_mux;
         end behaviour;
