@@ -47,21 +47,22 @@ entity project_reti_logiche is
                 elsif(RISING_EDGE(i_clk)) then
                     if(i_start = '1' and o_done = '0') then
                         program_state = started;
-                        o_en = '1';
+                        o_en <= '1';
                         current_address_read <= current_address_read + "00001000";
                         o_address <= current_address_read;
                     elsif(i_start = '1' and o_done = '1') then
                         program_state = computation_terminated;
-                        o_en = '1';
-                        o_we = '1';
+                        o_en <= '1';
+                        o_we <= '1';
                         current_address_write <= current_address_write + "00001000";
                         o_address <= current_address_write;
                     elsif(i_start = '0' and o_done = '0') then
-                        program_state = not_started;
-                        current_state = zero_zero;
-                        o_en = '0';
-                        o_we = '0';
-                
+                        program_state <= not_started;
+                        current_state <= zero_zero;
+                        o_en <= '0';
+                        o_we <= '0';
+                        end if;
+                    end if;    
             end sync_start;
 
             convolutore: process(o_en, o_we)
@@ -86,6 +87,7 @@ entity project_reti_logiche is
                                 else
                                     current_y_data(k + k - 1) <= '1';
                                     current_y_data(k + k + 1) <= '1';
+                                    
                                 
                         when one_zero => 
                             if(i_data(k) = '0') then
