@@ -1,6 +1,8 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
+use ieee.std_logic_arith.all;
+use ieee.std_logic_unsigned.all;
 
 entity project_reti_logiche is
     port (
@@ -62,13 +64,13 @@ entity project_reti_logiche is
                     if(i_start = '1' and o_done = '0') then
                         program_state <= started;
                         o_en <= '1';
-                        current_address_read <= current_address_read + "00001000";
+                        current_address_read <= current_address_read + "0000000000001000";
                         o_address <= current_address_read;
                     elsif(i_start = '1' and o_done = '1') then
                         program_state <= computation_terminated;
                         o_en <= '1';
                         o_we <= '1';
-                        current_address_write <= current_address_write + "00001000";
+                        current_address_write <= current_address_write + "0000000000001000";
                         o_address <= current_address_write;
                     elsif(i_start = '0' and o_done = '0') then
                         program_state <= not_started;
