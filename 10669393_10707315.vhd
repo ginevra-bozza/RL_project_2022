@@ -39,7 +39,7 @@ entity project_reti_logiche is
          function is_even(num: integer) return boolean is
             variable even : boolean;
         begin
-            if(num = "0" or num = "2" or num = "4" or num = "6" or num = "8" or num = "10" or num = "12" or num = "14") then
+            if(num = "0" or num = "2" or num = "4" or num = "6") then
                 even := true;
             else
                 even := false;
