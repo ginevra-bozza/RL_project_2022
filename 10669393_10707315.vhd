@@ -4,15 +4,15 @@ use ieee.numeric_std.all;
 
 entity project_reti_logiche is
     port (
-    i_clk : in std_logic;                           --i_clk è il segnale di CLOCK in ingresso generato dal TestBench;
-    i_rst : in std_logic;                           --i_rst è il segnale di RESET che inizializza la macchina pronta per ricevere il primo segnale di START;
-    i_start : in std_logic;                         --i_start è il segnale di START generato dal Test Bench;
-    i_data : in std_logic_vector(7 downto 0);       --i_data è il segnale (vettore) che arriva dalla memoria in seguito ad una richiesta di lettura;
-    o_address : out std_logic_vector(15 downto 0);  --o_address è il segnale (vettore) di uscita che manda l'indirizzo alla memoria;
-    o_done : out std_logic;                         --è il segnale di uscita che comunica la fine dell'elaborazione e il dato di uscita scritto in memoria;
-    o_en : out std_logic;                           --o_en è il segnale di ENABLE da dover mandare alla memoria per poter comunicare (sia in lettura che in scrittura);
-    o_we : out std_logic;                           --o_we è il segnale di WRITE ENABLE da dover mandare alla memoria (=1) per poter scriverci. Per leggere da memoria esso deve essere 0;
-    o_data : out std_logic_vector (7 downto 0)      --o_data è il segnale (vettore) di uscita dal componente verso la memoria.
+    i_clk : in std_logic;                           --i_clk ï¿½ il segnale di CLOCK in ingresso generato dal TestBench;
+    i_rst : in std_logic;                           --i_rst ï¿½ il segnale di RESET che inizializza la macchina pronta per ricevere il primo segnale di START;
+    i_start : in std_logic;                         --i_start ï¿½ il segnale di START generato dal Test Bench;
+    i_data : in std_logic_vector(7 downto 0);       --i_data ï¿½ il segnale (vettore) che arriva dalla memoria in seguito ad una richiesta di lettura;
+    o_address : out std_logic_vector(15 downto 0);  --o_address ï¿½ il segnale (vettore) di uscita che manda l'indirizzo alla memoria;
+    o_done : out std_logic;                         --ï¿½ il segnale di uscita che comunica la fine dell'elaborazione e il dato di uscita scritto in memoria;
+    o_en : out std_logic;                           --o_en ï¿½ il segnale di ENABLE da dover mandare alla memoria per poter comunicare (sia in lettura che in scrittura);
+    o_we : out std_logic;                           --o_we ï¿½ il segnale di WRITE ENABLE da dover mandare alla memoria (=1) per poter scriverci. Per leggere da memoria esso deve essere 0;
+    o_data : out std_logic_vector (7 downto 0)      --o_data ï¿½ il segnale (vettore) di uscita dal componente verso la memoria.
     );
     end project_reti_logiche;
 
@@ -33,6 +33,18 @@ entity project_reti_logiche is
         --reset segnali di lettura e scrittura
         signal rst_address_read: std_logic_vector(15 downto 0)  := "0000000000000000";
         signal rst_address_write: std_logic_vector(15 downto 0) := "0000001111101000"; 
+
+         function is_even(num: integer) return boolean is
+            variable even : boolean;
+        begin
+            if(num = "0" or num = "2" or num = "4" or num = "6" or num = "8" or num = "10" or num = "12" or num = "14") then
+                even := true;
+            else
+                even := false;
+            end if;
+            return even;
+            
+        end function;
         
         begin
             process( i_clk, i_rst ,i_start, o_done, o_address, current_address_read,current_address_write,o_en,o_we,current_state,program_state)
@@ -43,6 +55,7 @@ entity project_reti_logiche is
                     o_en <= '0';
                     o_we <= '0';
                     o_data <= "00000000";
+                    o_done <= '0';
                     current_state <= zero_zero;
                     program_state <= not_started;
                 elsif(RISING_EDGE(i_clk)) then
@@ -68,12 +81,13 @@ entity project_reti_logiche is
 
             process(o_en, o_we)
             begin
+                if(program_state = started) then
                 for k in 7 downto 0 loop
                     case current_state is
                         when zero_zero => 
                             if(i_data(k) = '0') then
                                 next_state <= zero_zero;
-                                if(k mod 2 = '0') then 
+                                if(is_even(k)) then 
                                     current_y_data(k + k) <= '0';
                                     current_y_data(k + k + 2) <= '0';
                                 else
@@ -82,7 +96,7 @@ entity project_reti_logiche is
                                     end if;
                             elsif(i_data(k) = '1') then
                                 next_state <= one_zero;
-                                if(k mod 2 = '0') then 
+                                if(is_even(k)) then 
                                     current_y_data(k + k) <= '1';
                                     current_y_data(k + k + 2) <= '1';
                                 else
@@ -93,7 +107,7 @@ entity project_reti_logiche is
                         when one_zero => 
                             if(i_data(k) = '0') then
                                 next_state <= zero_one;
-                                if(k mod 2 = '0') then 
+                                if(is_even(k)) then 
                                     current_y_data(k + k) <= '0';
                                     current_y_data(k + k + 2) <= '1';
                                 else
@@ -101,8 +115,8 @@ entity project_reti_logiche is
                                     current_y_data(k + k + 1) <= '1';
                                 end if;
                             elsif(i_data(k) = '1') then
-                                next_state = one_one;
-                                if(k mod 2 = '0') then 
+                                next_state <= one_one;
+                                if(is_even(k)) then 
                                     current_y_data(k + k) <= '1';
                                     current_y_data(k + k + 2) <= '0';
                                 else
@@ -113,7 +127,7 @@ entity project_reti_logiche is
                         when one_one => 
                             if(i_data(k) = '0') then
                                 next_state <= zero_one;
-                                if(k mod 2 = '0') then 
+                                if(is_even(k)) then 
                                     current_y_data(k + k) <= '1';
                                     current_y_data(k + k + 2) <= '0';
                                 else
@@ -122,7 +136,7 @@ entity project_reti_logiche is
                                 end if;
                             elsif(i_data(k) = '1') then
                                 next_state <= one_one;
-                                if(k mod 2 = '0') then 
+                                if(is_even(k)) then 
                                     current_y_data(k + k) <= '0';
                                     current_y_data(k + k + 2) <= '1';
                                 else
@@ -133,7 +147,7 @@ entity project_reti_logiche is
                         when zero_one => 
                             if(i_data(k) = '0') then
                                 next_state <= zero_zero;
-                                if(k mod 2 = '0') then 
+                                if(is_even(k)) then 
                                     current_y_data(k + k) <= '1';
                                     current_y_data(k + k + 2) <= '1';
                                 else
@@ -142,7 +156,7 @@ entity project_reti_logiche is
                                 end if;
                             elsif(i_data(k) = '1') then
                                 next_state <= one_zero;
-                                if(k mod 2 = '0') then 
+                                if(is_even(k)) then 
                                     current_y_data(k + k) <= '0';
                                     current_y_data(k + k + 2) <= '0';
                                 else
@@ -151,11 +165,13 @@ entity project_reti_logiche is
                                 end if;
                            end if;     
                        end case;
+                       current_state <= next_state;
                     end loop;
-
+                    o_done <= '1';
+                end if;
             end process;
 
-            process(o_we,o_data)
+            process(o_we, o_data, o_done)
             begin
                 if(o_we = '1' and o_data = "00000000") then
                     s <= '0';
@@ -165,15 +181,25 @@ entity project_reti_logiche is
                         intermediate_o_data(k) <= current_y_data(k);
                         end loop;
                 o_data <= intermediate_o_data;
-                s <= '1';
                 elsif(s = '1') then
                     for k in 7 downto 0 loop
                         intermediate_o_data(k) <= current_y_data(k + 8);
                         end loop;
-                s <= '0'; 
                 o_data <= intermediate_o_data;  
                 end if;
+                if(s = '1') then
+                    s <= '0';
+                else
+                    s <= '1';
+                end if;
+
+                o_done <= '0';
+
             end process;
             
         end behavioural;
+
+       
+
+    
 
