@@ -22,7 +22,8 @@ entity project_reti_logiche is
         type state_type is (zero_zero, zero_one, one_zero, one_one); --FSM da specifica
         type set_program_state is (not_started, started, computation_terminated); --Nostra FSM per gestire done e reset
 
-        signal current_state,next_state: state_type;
+        signal current_state: state_type;
+        signal next_state: state_type;
         signal program_state: set_program_state;
         
         --segnali su cui lavoriamo, che vengono modificati
@@ -50,7 +51,7 @@ entity project_reti_logiche is
         end function;
         
         begin
-            process( i_clk, i_rst ,i_start, current_address_read,current_address_write,current_state,program_state)
+            process( i_clk, i_rst ,i_start)
             begin
                 if(i_rst = '1') then
                     current_address_read <= rst_address_read;
@@ -87,90 +88,92 @@ entity project_reti_logiche is
             process
             begin
                 if(program_state = started) then
-                for k in 7 downto 0 loop
-                    case current_state is
-                        when zero_zero => 
-                            if(i_data(k) = '0') then
-                                next_state <= zero_zero;
-                                if(is_even(k)) then 
-                                    current_y_data(k + k) <= '0';
-                                    current_y_data(k + k + 2) <= '0';
-                                else
-                                    current_y_data(k + k - 1) <= '0';
-                                    current_y_data(k + k + 1) <= '0';
+                    if(current_state = zero_zero) then
+                        next_state <= current_state;
+                    end if;
+                    for k in 7 downto 0 loop
+                        case next_state is
+                            when zero_zero => 
+                                if(i_data(k) = '0') then
+                                    next_state <= zero_zero;
+                                    if(is_even(k)) then 
+                                        current_y_data(k + k) <= '0';
+                                        current_y_data(k + k + 2) <= '0';
+                                    else
+                                        current_y_data(k + k - 1) <= '0';
+                                        current_y_data(k + k + 1) <= '0';
+                                        end if;
+                                elsif(i_data(k) = '1') then
+                                    next_state <= one_zero;
+                                    if(is_even(k)) then 
+                                        current_y_data(k + k) <= '1';
+                                        current_y_data(k + k + 2) <= '1';
+                                    else
+                                        current_y_data(k + k - 1) <= '1';
+                                        current_y_data(k + k + 1) <= '1';
+                                        end if;
+                                end if;
+                            when one_zero => 
+                                if(i_data(k) = '0') then
+                                    next_state <= zero_one;
+                                    if(is_even(k)) then 
+                                        current_y_data(k + k) <= '0';
+                                        current_y_data(k + k + 2) <= '1';
+                                    else
+                                        current_y_data(k + k - 1) <= '0';
+                                        current_y_data(k + k + 1) <= '1';
                                     end if;
-                            elsif(i_data(k) = '1') then
-                                next_state <= one_zero;
-                                if(is_even(k)) then 
-                                    current_y_data(k + k) <= '1';
-                                    current_y_data(k + k + 2) <= '1';
-                                else
-                                    current_y_data(k + k - 1) <= '1';
-                                    current_y_data(k + k + 1) <= '1';
+                                elsif(i_data(k) = '1') then
+                                    next_state <= one_one;
+                                    if(is_even(k)) then 
+                                        current_y_data(k + k) <= '1';
+                                        current_y_data(k + k + 2) <= '0';
+                                    else
+                                        current_y_data(k + k - 1) <= '1';
+                                        current_y_data(k + k + 1) <= '0';
                                     end if;
-                               end if;
-                        when one_zero => 
-                            if(i_data(k) = '0') then
-                                next_state <= zero_one;
-                                if(is_even(k)) then 
-                                    current_y_data(k + k) <= '0';
-                                    current_y_data(k + k + 2) <= '1';
-                                else
-                                    current_y_data(k + k - 1) <= '0';
-                                    current_y_data(k + k + 1) <= '1';
                                 end if;
-                            elsif(i_data(k) = '1') then
-                                next_state <= one_one;
-                                if(is_even(k)) then 
-                                    current_y_data(k + k) <= '1';
-                                    current_y_data(k + k + 2) <= '0';
-                                else
-                                    current_y_data(k + k - 1) <= '1';
-                                    current_y_data(k + k + 1) <= '0';
+                            when one_one => 
+                                if(i_data(k) = '0') then
+                                    next_state <= zero_one;
+                                    if(is_even(k)) then 
+                                        current_y_data(k + k) <= '1';
+                                        current_y_data(k + k + 2) <= '0';
+                                    else
+                                        current_y_data(k + k - 1) <= '1';
+                                        current_y_data(k + k + 1) <= '0';
+                                    end if;
+                                elsif(i_data(k) = '1') then
+                                    next_state <= one_one;
+                                    if(is_even(k)) then 
+                                        current_y_data(k + k) <= '0';
+                                        current_y_data(k + k + 2) <= '1';
+                                    else
+                                        current_y_data(k + k - 1) <= '0';
+                                        current_y_data(k + k + 1) <= '1';
+                                    end if;
                                 end if;
-                            end if;
-                        when one_one => 
-                            if(i_data(k) = '0') then
-                                next_state <= zero_one;
-                                if(is_even(k)) then 
-                                    current_y_data(k + k) <= '1';
-                                    current_y_data(k + k + 2) <= '0';
-                                else
-                                    current_y_data(k + k - 1) <= '1';
-                                    current_y_data(k + k + 1) <= '0';
-                                end if;
-                            elsif(i_data(k) = '1') then
-                                next_state <= one_one;
-                                if(is_even(k)) then 
-                                    current_y_data(k + k) <= '0';
-                                    current_y_data(k + k + 2) <= '1';
-                                else
-                                    current_y_data(k + k - 1) <= '0';
-                                    current_y_data(k + k + 1) <= '1';
-                                end if;
-                            end if;
-                        when zero_one => 
-                            if(i_data(k) = '0') then
-                                next_state <= zero_zero;
-                                if(is_even(k)) then 
-                                    current_y_data(k + k) <= '1';
-                                    current_y_data(k + k + 2) <= '1';
-                                else
-                                    current_y_data(k + k - 1) <= '1';
-                                    current_y_data(k + k + 1) <= '1';
-                                end if;
-                            elsif(i_data(k) = '1') then
-                                next_state <= one_zero;
-                                if(is_even(k)) then 
-                                    current_y_data(k + k) <= '0';
-                                    current_y_data(k + k + 2) <= '0';
-                                else
-                                    current_y_data(k + k - 1) <= '0';
-                                    current_y_data(k + k + 1) <= '0';
-                                end if;
-                           end if;     
+                            when zero_one => 
+                                if(i_data(k) = '0') then
+                                    next_state <= zero_zero;
+                                    if(is_even(k)) then 
+                                        current_y_data(k + k) <= '1';
+                                        current_y_data(k + k + 2) <= '1';
+                                    else
+                                        current_y_data(k + k - 1) <= '1';
+                                        current_y_data(k + k + 1) <= '1';
+                                    end if;
+                                elsif(i_data(k) = '1') then
+                                    next_state <= one_zero;
+                                    if(is_even(k)) then 
+                                        current_y_data(k + k) <= '0';
+                                        current_y_data(k + k + 2) <= '0';
+                                    else
+                                        current_y_data(k + k - 1) <= '0';
+                                        current_y_data(k + k + 1) <= '0';
+                                    end if;
+                            end if;     
                        end case;
-                       current_state <= next_state;
                     end loop;
                     intermediate_o_done <= '0';
                     o_done <= '1';
