@@ -30,6 +30,7 @@ entity project_reti_logiche is
         signal current_address_read: std_logic_vector(15 downto 0);
         signal current_address_write: std_logic_vector(15 downto 0); 
         signal intermediate_o_data: std_logic_vector(7 downto 0);
+        signal intermediate_o_done: std_logic;
         signal s: bit;
         
         --reset segnali di lettura e scrittura
@@ -39,7 +40,7 @@ entity project_reti_logiche is
          function is_even(num: integer) return boolean is
             variable even : boolean;
         begin
-            if(num = "0" or num = "2" or num = "4" or num = "6") then
+            if((num = 0) or (num = 2) or (num = 4) or (num = 6)) then
                 even := true;
             else
                 even := false;
@@ -49,7 +50,7 @@ entity project_reti_logiche is
         end function;
         
         begin
-            process( i_clk, i_rst ,i_start, o_done, o_address, current_address_read,current_address_write,o_en,o_we,current_state,program_state)
+            process( i_clk, i_rst ,i_start, current_address_read,current_address_write,current_state,program_state)
             begin
                 if(i_rst = '1') then
                     current_address_read <= rst_address_read;
@@ -58,21 +59,23 @@ entity project_reti_logiche is
                     o_we <= '0';
                     o_data <= "00000000";
                     o_done <= '0';
+                    intermediate_o_done <= '0';
+
                     current_state <= zero_zero;
                     program_state <= not_started;
                 elsif(RISING_EDGE(i_clk)) then
-                    if(i_start = '1' and o_done = '0') then
+                    if(i_start = '1' and intermediate_o_done = '0') then
                         program_state <= started;
                         o_en <= '1';
                         current_address_read <= current_address_read + "0000000000001000";
                         o_address <= current_address_read;
-                    elsif(i_start = '1' and o_done = '1') then
+                    elsif(i_start = '1' and intermediate_o_done = '1') then
                         program_state <= computation_terminated;
                         o_en <= '1';
                         o_we <= '1';
                         current_address_write <= current_address_write + "0000000000001000";
                         o_address <= current_address_write;
-                    elsif(i_start = '0' and o_done = '0') then
+                    elsif(i_start = '0' and intermediate_o_done = '0') then
                         program_state <= not_started;
                         current_state <= zero_zero;
                         o_en <= '0';
@@ -81,7 +84,7 @@ entity project_reti_logiche is
                 end if;    
         end process;
 
-            process(o_en, o_we)
+            process
             begin
                 if(program_state = started) then
                 for k in 7 downto 0 loop
@@ -169,13 +172,14 @@ entity project_reti_logiche is
                        end case;
                        current_state <= next_state;
                     end loop;
+                    intermediate_o_done <= '0';
                     o_done <= '1';
                 end if;
             end process;
 
-            process(o_we, o_data, o_done)
+            process
             begin
-                if(o_we = '1' and o_data = "00000000") then
+                if(program_state = computation_terminated and intermediate_o_data = "00000000") then
                     s <= '0';
                     end if;
                 if(s = '0') then
@@ -196,6 +200,7 @@ entity project_reti_logiche is
                 end if;
 
                 o_done <= '0';
+                intermediate_o_done <= '0';
 
             end process;
             
