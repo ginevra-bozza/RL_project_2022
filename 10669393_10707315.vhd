@@ -85,7 +85,7 @@ entity project_reti_logiche is
                 end if;    
         end process;
 
-            process
+            process(intermediate_o_done)
             begin
                 if(program_state = started) then
                     if(current_state = zero_zero) then
@@ -180,7 +180,7 @@ entity project_reti_logiche is
                 end if;
             end process;
 
-            process
+            process(intermediate_o_done)
             begin
                 if(program_state = computation_terminated and intermediate_o_data = "00000000") then
                     s <= '0';
