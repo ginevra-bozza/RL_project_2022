@@ -33,7 +33,7 @@ entity project_reti_logiche is
         signal intermediate_o_data: std_logic_vector(7 downto 0);
         signal intermediate_o_done: std_logic;
         signal s: bit;
-        
+        signal k_scorr: integer;
         --reset segnali di lettura e scrittura
         signal rst_address_read: std_logic_vector(15 downto 0)  := "0000000000000000";
         signal rst_address_write: std_logic_vector(15 downto 0) := "0000001111101000"; 
@@ -67,22 +67,30 @@ entity project_reti_logiche is
                 elsif(RISING_EDGE(i_clk)) then
                     if(i_start = '1' and intermediate_o_done = '0') then
                         program_state <= started;
-                        o_en <= '1';
-                        current_address_read <= current_address_read + "0000000000001000";
-                        o_address <= current_address_read;
-                    elsif(i_start = '1' and intermediate_o_done = '1') then
+                        elsif(i_start = '1' and intermediate_o_done = '1') then
                         program_state <= computation_terminated;
-                        o_en <= '1';
-                        o_we <= '1';
-                        current_address_write <= current_address_write + "0000000000001000";
-                        o_address <= current_address_write;
-                    elsif(i_start = '0' and intermediate_o_done = '0') then
+                        elsif(i_start = '0' and intermediate_o_done = '0') then
                         program_state <= not_started;
                         current_state <= zero_zero;
-                        o_en <= '0';
-                        o_we <= '0';
                     end if;
                 end if;    
+        end process;
+
+        process( i_clk, i_rst ,i_start)
+        begin
+            if(program_state = started) then
+                o_en <= '1';
+                current_address_read <= current_address_read + "0000000000001000";
+                o_address <= current_address_read;
+            elsif(program_state = computation_terminated) then
+                o_en <= '1';
+                o_we <= '1';
+                current_address_write <= current_address_write + "0000000000001000";
+                o_address <= current_address_write;
+            elsif(program_state = not_started) then
+                o_en <= '0';
+                o_we <= '0';
+            end if;
         end process;
 
             process(intermediate_o_done)
@@ -96,89 +104,112 @@ entity project_reti_logiche is
                             when zero_zero => 
                                 if(i_data(k) = '0') then
                                     next_state <= zero_zero;
-                                    if(is_even(k)) then 
-                                        current_y_data(k + k) <= '0';
-                                        current_y_data(k + k + 2) <= '0';
-                                    else
-                                        current_y_data(k + k - 1) <= '0';
-                                        current_y_data(k + k + 1) <= '0';
-                                        end if;
                                 elsif(i_data(k) = '1') then
                                     next_state <= one_zero;
-                                    if(is_even(k)) then 
-                                        current_y_data(k + k) <= '1';
-                                        current_y_data(k + k + 2) <= '1';
-                                    else
-                                        current_y_data(k + k - 1) <= '1';
-                                        current_y_data(k + k + 1) <= '1';
-                                        end if;
                                 end if;
                             when one_zero => 
                                 if(i_data(k) = '0') then
                                     next_state <= zero_one;
-                                    if(is_even(k)) then 
-                                        current_y_data(k + k) <= '0';
-                                        current_y_data(k + k + 2) <= '1';
-                                    else
-                                        current_y_data(k + k - 1) <= '0';
-                                        current_y_data(k + k + 1) <= '1';
-                                    end if;
                                 elsif(i_data(k) = '1') then
                                     next_state <= one_one;
-                                    if(is_even(k)) then 
-                                        current_y_data(k + k) <= '1';
-                                        current_y_data(k + k + 2) <= '0';
-                                    else
-                                        current_y_data(k + k - 1) <= '1';
-                                        current_y_data(k + k + 1) <= '0';
-                                    end if;
                                 end if;
                             when one_one => 
                                 if(i_data(k) = '0') then
                                     next_state <= zero_one;
-                                    if(is_even(k)) then 
-                                        current_y_data(k + k) <= '1';
-                                        current_y_data(k + k + 2) <= '0';
-                                    else
-                                        current_y_data(k + k - 1) <= '1';
-                                        current_y_data(k + k + 1) <= '0';
-                                    end if;
                                 elsif(i_data(k) = '1') then
                                     next_state <= one_one;
-                                    if(is_even(k)) then 
-                                        current_y_data(k + k) <= '0';
-                                        current_y_data(k + k + 2) <= '1';
-                                    else
-                                        current_y_data(k + k - 1) <= '0';
-                                        current_y_data(k + k + 1) <= '1';
-                                    end if;
                                 end if;
                             when zero_one => 
                                 if(i_data(k) = '0') then
                                     next_state <= zero_zero;
-                                    if(is_even(k)) then 
-                                        current_y_data(k + k) <= '1';
-                                        current_y_data(k + k + 2) <= '1';
-                                    else
-                                        current_y_data(k + k - 1) <= '1';
-                                        current_y_data(k + k + 1) <= '1';
-                                    end if;
                                 elsif(i_data(k) = '1') then
                                     next_state <= one_zero;
-                                    if(is_even(k)) then 
-                                        current_y_data(k + k) <= '0';
-                                        current_y_data(k + k + 2) <= '0';
-                                    else
-                                        current_y_data(k + k - 1) <= '0';
-                                        current_y_data(k + k + 1) <= '0';
-                                    end if;
                             end if;     
                        end case;
+                       k_scorr  <= k;
                     end loop;
                     intermediate_o_done <= '0';
                     o_done <= '1';
                 end if;
             end process;
+
+            process
+            begin
+                case next_state is
+                    when zero_zero => 
+                        if(i_data(k_scorr) = '0') then
+                            if(is_even(k_scorr)) then 
+                                current_y_data(k_scorr + k_scorr) <= '0';
+                                current_y_data(k_scorr + k_scorr + 2) <= '0';
+                            else
+                                current_y_data(k_scorr + k_scorr - 1) <= '0';
+                                current_y_data(k_scorr + k_scorr + 1) <= '0';
+                                end if;
+                        elsif(i_data(k_scorr) = '1') then
+                            if(is_even(k_scorr)) then 
+                                current_y_data(k_scorr + k_scorr) <= '1';
+                                current_y_data(k_scorr + k_scorr + 2) <= '1';
+                            else
+                                current_y_data(k_scorr + k_scorr - 1) <= '1';
+                                current_y_data(k_scorr + k_scorr + 1) <= '1';
+                                end if;
+                        end if;
+                    when one_zero => 
+                        if(i_data(k_scorr) = '0') then
+                            if(is_even(k_scorr)) then 
+                                current_y_data(k_scorr + k_scorr) <= '0';
+                                current_y_data(k_scorr + k_scorr + 2) <= '1';
+                            else
+                                current_y_data(k_scorr + k_scorr - 1) <= '0';
+                                current_y_data(k_scorr + k_scorr + 1) <= '1';
+                            end if;
+                        elsif(i_data(k_scorr) = '1') then
+                            if(is_even(k_scorr)) then 
+                                current_y_data(k_scorr + k_scorr) <= '1';
+                                current_y_data(k_scorr + k_scorr + 2) <= '0';
+                            else
+                                current_y_data(k_scorr + k_scorr - 1) <= '1';
+                                current_y_data(k_scorr + k_scorr + 1) <= '0';
+                            end if;
+                        end if;
+                    when one_one => 
+                        if(i_data(k_scorr) = '0') then
+                            if(is_even(k_scorr)) then 
+                                current_y_data(k_scorr + k_scorr) <= '1';
+                                current_y_data(k_scorr + k_scorr + 2) <= '0';
+                            else
+                                current_y_data(k_scorr + k_scorr - 1) <= '1';
+                                current_y_data(k_scorr + k_scorr + 1) <= '0';
+                            end if;
+                        elsif(i_data(k_scorr) = '1') then
+                            if(is_even(k_scorr)) then 
+                                current_y_data(k_scorr + k_scorr) <= '0';
+                                current_y_data(k_scorr + k_scorr + 2) <= '1';
+                            else
+                                current_y_data(k_scorr + k_scorr - 1) <= '0';
+                                current_y_data(k_scorr + k_scorr + 1) <= '1';
+                            end if;
+                        end if;
+                    when zero_one => 
+                        if(i_data(k_scorr) = '0') then
+                            if(is_even(k_scorr)) then 
+                                current_y_data(k_scorr + k_scorr) <= '1';
+                                current_y_data(k_scorr + k_scorr + 2) <= '1';
+                            else
+                                current_y_data(k_scorr + k_scorr - 1) <= '1';
+                                current_y_data(k_scorr + k_scorr + 1) <= '1';
+                            end if;
+                        elsif(i_data(k_scorr) = '1') then
+                            if(is_even(k_scorr)) then 
+                                current_y_data(k_scorr + k_scorr) <= '0';
+                                current_y_data(k_scorr + k_scorr + 2) <= '0';
+                            else
+                                current_y_data(k_scorr + k_scorr - 1) <= '0';
+                                current_y_data(k_scorr + k_scorr + 1) <= '0';
+                            end if;
+                    end if;     
+               end case;
+                end process;
 
             process(intermediate_o_done)
             begin
