@@ -24,15 +24,14 @@ entity project_reti_logiche is
 
         signal current_state: state_type;
         signal next_state: state_type;
-        signal program_state: set_program_state;
+        --signal program_state: set_program_state;
         
         --segnali su cui lavoriamo, che vengono modificati
-        signal current_y_data: std_logic_vector(15 downto 0)        := "0000000000000000";
-        signal current_address_read: std_logic_vector(15 downto 0);
-        signal current_address_write: std_logic_vector(15 downto 0); 
-        signal intermediate_o_data: std_logic_vector(7 downto 0);
-        signal intermediate_o_done: std_logic;
-        signal s: bit;
+        signal current_address_read: std_logic_vector(15 downto 0) :=  "0000000000000000";
+        signal current_address_write: std_logic_vector(15 downto 0) := "0000001111101000"; 
+        signal num_of_word: integer := 0;
+        signal k: integer := 0; 
+        signal first_o_data_done: boolean:= false;
 
         signal i_data_bit: bit;
         signal i_data_elab: std_logic_vector(1 downto 0);
@@ -46,9 +45,11 @@ entity project_reti_logiche is
         
         begin
 
-            process(i_data_bit,i_data_counter)
+            process(i_data_bit,i_data_counter,o_data, o_we)
             begin
                 
+
+                o_we <= 0;
                 case current_state is
                     when zero_zero => 
                     if(i_data_bit = '0') then
@@ -101,6 +102,26 @@ entity project_reti_logiche is
                     when 7 =>
                         R7 <= i_data_elab;
                     end case;
+
+                if(i_data_counter = 7) then
+                    o_we <= '1';
+                    k <= k + 1;
+                    end if;
+                
+                if(not first_o_data_done) then
+                    o_address <= current_address_write;
+                    o_data <= R0 & R1 & R2 & R3;
+                    current_address_write <= current_address_write + "1000";
+                    first_o_data_done <= true;
+                else   
+                    o_address <= current_address_write;
+                    o_data <= R4 & R5 & R6 & R7 ;
+                    current_address_write <= current_address_write + "1000";
+                    first_o_data_done <= false;
+                end if;
+                if(k = num_of_word) then
+                    o_done <= '1';
+                end if;
             end process;
 
     process(i_clk,i_rst,i_start,i_data)
@@ -115,7 +136,15 @@ entity project_reti_logiche is
                     o_done <= '0';
                     current_state <= zero_zero;
             elsif(i_start = '1') then
+                if (num_of_word = 0) then
+                    num_of_word <= i_data;
+                    current_address_read <= current_address_read + 8;
+                    o_address <= current_address_read;
+                end if;
+                o_en <= 1;
                 i_data_bit <= i_data(i_data_counter);
+                current_address_read <= current_address_read + 1;
+                o_address <= current_address_read;
                 i_data_counter <= i_data_counter + 1;
                 current_state <= next_state;
                 --gestire if nel caso o_end e fare il concatenamento
@@ -123,134 +152,8 @@ entity project_reti_logiche is
         end if;
     end process;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-            process( i_clk, i_rst ,i_start, o_done, o_address, current_address_read,current_address_write,o_en,o_we,current_state,program_state)
-            begin
-                if(i_rst = '1') then
-                    current_address_read <= rst_address_read;
-                    current_address_write <= rst_address_write;
-                    o_en <= '0';
-                    o_we <= '0';
-                    o_data <= "00000000";
-                    o_done <= '0';
-                    intermediate_o_done <= '0';
-
-                    current_state <= zero_zero;
-                    program_state <= not_started;
-                elsif(RISING_EDGE(i_clk)) then
-                    if(i_start = '1' and intermediate_o_done = '0') then
-                        program_state <= started;
-                        elsif(i_start = '1' and intermediate_o_done = '1') then
-                        program_state <= computation_terminated;
-                        elsif(i_start = '0' and intermediate_o_done = '0') then
-                        program_state <= not_started;
-                        current_state <= zero_zero;
-                    end if;
-                end if;    
-        end process;
-
-        process( i_clk, i_rst ,i_start)
-        begin
-            if(program_state = started) then
-                o_en <= '1';
-                current_address_read <= current_address_read + "0000000000001000";
-                o_address <= current_address_read;
-            elsif(program_state = computation_terminated) then
-                o_en <= '1';
-                o_we <= '1';
-                current_address_write <= current_address_write + "0000000000001000";
-                o_address <= current_address_write;
-            elsif(program_state = not_started) then
-                o_en <= '0';
-                o_we <= '0';
-            end if;
-        end process;
-
-            process(intermediate_o_done)
-            begin
-                if(program_state = started) then
-                    if(current_state = zero_zero) then
-                        next_state <= current_state;
-                    end if;
-                    for k in 7 downto 0 loop
-                        case next_state is
-                            when zero_zero => 
-                                if(i_data(k) = '0') then
-                                    next_state <= zero_zero;
-                                elsif(i_data(k) = '1') then
-                                    next_state <= one_zero;
-                                end if;
-                            when one_zero => 
-                                if(i_data(k) = '0') then
-                                    next_state <= zero_one;
-                                elsif(i_data(k) = '1') then
-                                    next_state <= one_one;
-                                end if;
-                            when one_one => 
-                                if(i_data(k) = '0') then
-                                    next_state <= zero_one;
-                                elsif(i_data(k) = '1') then
-                                    next_state <= one_one;
-                                end if;
-                            when zero_one => 
-                                if(i_data(k) = '0') then
-                                    next_state <= zero_zero;
-                                elsif(i_data(k) = '1') then
-                                    next_state <= one_zero;
-                            end if;     
-                       end case;
-                    end loop;
-                    intermediate_o_done <= '0';
-                    o_done <= '1';
-                end if;
-            end process;
-
-    
-
-            process(intermediate_o_done)
-            begin
-                if(program_state = computation_terminated and intermediate_o_data = "00000000") then
-                    s <= '0';
-                    end if;
-                if(s = '0') then
-                    for k in 7 downto 0 loop
-                        intermediate_o_data(k) <= current_y_data(k);
-                        end loop;
-                o_data <= intermediate_o_data;
-                elsif(s = '1') then
-                    for k in 7 downto 0 loop
-                        intermediate_o_data(k) <= current_y_data(k + 8);
-                        end loop;
-                o_data <= intermediate_o_data;  
-                end if;
-                if(s = '1') then
-                    s <= '0';
-                else
-                    s <= '1';
-                end if;
-
-                o_done <= '0';
-                intermediate_o_done <= '0';
-
-            end process;
             
-        end behavioural;
+    end behavioural;
 
        
 
