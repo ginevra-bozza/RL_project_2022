@@ -1,7 +1,7 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
-use ieee.std_logic_arith.all;
+--use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
 entity project_reti_logiche is
@@ -32,8 +32,10 @@ entity project_reti_logiche is
         signal num_of_word: integer := 0;
         signal k: integer := 0; 
         signal first_o_data_done: boolean:= false;
+        signal check_errors: boolean:= false;
 
-        signal i_data_bit: bit;
+
+        signal i_data_bit: std_logic;
         signal i_data_elab: std_logic_vector(1 downto 0);
         signal i_data_counter: integer := 0 ;
         signal R0,R1,R2,R3,R4,R5,R6,R7 : std_logic_vector(0 to 1);
@@ -45,11 +47,11 @@ entity project_reti_logiche is
         
         begin
 
-            process(i_data_bit,i_data_counter,o_data, o_we)
+            process(i_data_bit,i_data_counter)
             begin
                 
 
-                o_we <= 0;
+                o_we <= '0';
                 case current_state is
                     when zero_zero => 
                     if(i_data_bit = '0') then
@@ -82,7 +84,9 @@ entity project_reti_logiche is
                     elsif(i_data_bit = '1') then
                         next_state <= one_zero;
                         i_data_elab <= "00";
-                    end if;     
+                    end if;
+                when others =>
+                    check_errors <= true;
                 end case;
                 case i_data_counter is
                     when 0 =>
@@ -101,6 +105,8 @@ entity project_reti_logiche is
                         R6 <= i_data_elab;
                     when 7 =>
                         R7 <= i_data_elab;
+                    when others => 
+                        check_errors <= true;
                     end case;
 
                 if(i_data_counter = 7) then
@@ -137,11 +143,11 @@ entity project_reti_logiche is
                     current_state <= zero_zero;
             elsif(i_start = '1') then
                 if (num_of_word = 0) then
-                    num_of_word <= i_data;
+                    num_of_word <= to_integer(unsigned(i_data));
                     current_address_read <= current_address_read + 8;
                     o_address <= current_address_read;
                 end if;
-                o_en <= 1;
+                o_en <= '1';
                 i_data_bit <= i_data(i_data_counter);
                 current_address_read <= current_address_read + 1;
                 o_address <= current_address_read;
