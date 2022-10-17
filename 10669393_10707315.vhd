@@ -19,7 +19,7 @@ entity project_reti_logiche is
     end project_reti_logiche;
 
     architecture behavioural of project_reti_logiche is
-        type state_type is (RST, START, W_NUM, START_READ, DONE, WRITE_FIRST, DIV_WORD, WRITE_SECOND, zero_zero, zero_one, one_zero, one_one); --FSM da specifica
+        type state_type is (RST, START, R_NUM, START_READ, DONE, WRITE_FIRST, DIV_WORD, WRITE_SECOND, zero_zero, zero_one, one_zero, one_one); --FSM da specifica
 
         signal current_state: state_type;
         signal next_state: state_type;
@@ -35,7 +35,6 @@ entity project_reti_logiche is
         signal check_errors: boolean:= false;
 
 
-        signal i_data_bit: std_logic;
         signal i_data_elab: std_logic_vector(1 downto 0);
         signal i_data_counter: integer := 0 ;
         signal current_word : std_logic_vector(0 to 7);
@@ -44,12 +43,11 @@ entity project_reti_logiche is
         --reset segnali di lettura e scrittura
         signal rst_address_read: std_logic_vector(15 downto 0)  := "0000000000000000";
         signal rst_address_write: std_logic_vector(15 downto 0) := "0000001111101000"; 
-        signal current_output_word: std_logic_vector(15 downto 0) := "0000001111101000"; 
 
         
         begin
 
-            process(i_data_bit,i_data_counter)
+            process(i_data,i_start,i_rst)
             begin
                 
                 case current_state is
@@ -62,7 +60,7 @@ entity project_reti_logiche is
                         o_done <= '0';
                         o_address <= rst_address_read;
                         cur_fsm_state <= zero_zero;
-                        now_counter := 0;
+                        now_counter <= 0;
                         if(i_start = '1') then 
                             next_state <= START;
                             end if;
@@ -76,29 +74,22 @@ entity project_reti_logiche is
                         o_done <= '0';
                         o_address <= current_address_read;
                         cur_fsm_state <= zero_zero;
+                        next_state <= R_NUM;
+
+                    when R_NUM =>
                         num_of_word <= TO_INTEGER(unsigned(i_data));
-                        current_address_read <= std_logic_vector(unsigned(current_address_read) + 1);
-                        next_state <= START_READ;
-                    
-                    when START_READ =>
-                        current_address_read <= current_address_read;
-                        current_address_write <= current_address_write;
-                        o_en <= '1';
-                        o_we <= '0';
-                        o_data <= "00000000";
-                        o_done <= '0';
+                        current_address_read <= std_logic_vector(unsigned(current_address_read + "1000"));
                         o_address <= current_address_read;
-                        cur_fsm_state <= zero_zero;
-                        num_of_word <= TO_INTEGER(unsigned(i_data));
-                        current_address_read <= std_logic_vector(unsigned(current_address_read) + 1);
+                        next_state <= START_READ;
+                        
+                    when START_READ =>
+                        current_word <= i_data;
+                        current_address_read <= std_logic_vector(unsigned(current_address_read + "1000") );
                         next_state <= cur_fsm_state;
 
                     when zero_zero => 
                         cur_fsm_state <= zero_zero;
                         o_en <= '0';
-                        o_we <= '0';
-                        o_data <= "00000000";
-                        o_done <= '0';
                         
                         i_data_counter <= i_data_counter + 1;
                             if(i_data_counter = 8) then
@@ -107,10 +98,10 @@ entity project_reti_logiche is
                                 now_counter <= now_counter + 1; 
                             end if;
 
-                        if(i_data_bit = '0') then
+                        if(current_word(i_data_counter) = '0') then
                             next_state <= zero_zero;
                             i_data_elab <= "00";
-                        elsif(i_data_bit = '1') then
+                        elsif(current_word(i_data_counter) = '1') then
                             next_state <= one_zero;
                             i_data_elab <= "11";
                         end if;
@@ -120,9 +111,6 @@ entity project_reti_logiche is
                 when one_zero => 
                     cur_fsm_state <= one_zero;
                     o_en <= '0';
-                    o_we <= '0';
-                    o_data <= "00000000";
-                    o_done <= '0';
 
                     i_data_counter <= i_data_counter + 1;
                     if(i_data_counter = 8) then
@@ -132,10 +120,10 @@ entity project_reti_logiche is
                     end if;
 
 
-                    if(i_data_bit = '0') then
+                    if(current_word(i_data_counter) = '0') then
                         next_state <= zero_one;
                         i_data_elab <= "01";
-                    elsif(i_data_bit = '1') then
+                    elsif(current_word(i_data_counter) = '1') then
                         next_state <= one_one;
                         i_data_elab <= "10";
                     end if;
@@ -144,9 +132,6 @@ entity project_reti_logiche is
 
                 cur_fsm_state <= one_one;
                 o_en <= '0';
-                o_we <= '0';
-                o_data <= "00000000";
-                o_done <= '0';
 
                 i_data_counter <= i_data_counter + 1;
                 if(i_data_counter = 8) then
@@ -155,10 +140,10 @@ entity project_reti_logiche is
                     now_counter <= now_counter + 1; 
                 end if;
 
-                    if(i_data_bit = '0') then
+                    if(current_word(i_data_counter) = '0') then
                         next_state <= zero_one;
                         i_data_elab <= "10";
-                    elsif(i_data_bit = '1') then
+                    elsif(current_word(i_data_counter) = '1') then
                         next_state <= one_one;
                         i_data_elab <= "01";
                     end if;
@@ -168,9 +153,6 @@ entity project_reti_logiche is
 
                 cur_fsm_state <= zero_one;
                 o_en <= '0';
-                o_we <= '0';
-                o_data <= "00000000";
-                o_done <= '0';
 
                 i_data_counter <= i_data_counter + 1;
                 if(i_data_counter = 8) then
@@ -179,10 +161,10 @@ entity project_reti_logiche is
                     now_counter <= now_counter + 1; 
                 end if;
 
-                    if(i_data_bit = '0') then
+                    if(current_word(i_data_counter) = '0') then
                         next_state <= zero_zero;
                         i_data_elab <= "11";
-                    elsif(i_data_bit = '1') then
+                    elsif(current_word(i_data_counter) = '1') then
                         next_state <= one_zero;
                         i_data_elab <= "00";
                     end if;
@@ -192,12 +174,12 @@ entity project_reti_logiche is
                     if(not first_o_data_done) then
                         o_address <= current_address_write;
                         o_data <= R0 & R1 & R2 & R3;
-                        current_address_write <= current_address_write + "1000";
+                        current_address_write <= std_logic_vector(unsigned(current_address_write + "1000") );
                         first_o_data_done <= true;
                     else   
                         o_address <= current_address_write;
                         o_data <= R4 & R5 & R6 & R7 ;
-                        current_address_write <= current_address_write + "1000";
+                        current_address_write <= std_logic_vector(unsigned(current_address_write + "1000"));
                         first_o_data_done <= false;
                     end if;
                     if(now_counter = num_of_word) then
@@ -214,7 +196,9 @@ entity project_reti_logiche is
                             next_state <= RST;
                         end if;
                 when others =>
+                if(check_errors = false) then
                     check_errors <= true;
+                    end if;
                 end case;
 
                 case i_data_counter is
@@ -239,7 +223,6 @@ entity project_reti_logiche is
                     end case;
 
                 if(i_data_counter = 7) then
-                --    current_output_word <= R0 & R1 & R2 & R3 & R4 & R5 & R6 & R7;
                     now_counter <= now_counter + 1;
                     next_state <= DIV_WORD;
                     end if;
@@ -248,7 +231,7 @@ entity project_reti_logiche is
                 
             end process;
 
-    process(i_clk,i_rst,i_start,i_data)
+    process(i_clk,i_rst,i_start)
     begin
         if(i_rst = '1') then
                 current_state <= RST;
