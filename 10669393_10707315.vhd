@@ -73,7 +73,6 @@ entity project_reti_logiche is
                         o_data <= "00000000";
                         o_done <= '0';
                         o_address <= current_address_read;
-                        cur_fsm_state <= zero_zero;
                         next_state <= R_NUM;
 
                     when R_NUM =>
