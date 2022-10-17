@@ -19,18 +19,18 @@ entity project_reti_logiche is
     end project_reti_logiche;
 
     architecture behavioural of project_reti_logiche is
-        type state_type is (zero_zero, zero_one, one_zero, one_one); --FSM da specifica
-        type set_program_state is (not_started, started, computation_terminated); --Nostra FSM per gestire done e reset
+        type state_type is (RST, START, W_NUM, START_READ, DONE, WRITE_FIRST, DIV_WORD, WRITE_SECOND, zero_zero, zero_one, one_zero, one_one); --FSM da specifica
 
         signal current_state: state_type;
         signal next_state: state_type;
+        signal cur_fsm_state: state_type;
         --signal program_state: set_program_state;
         
         --segnali su cui lavoriamo, che vengono modificati
         signal current_address_read: std_logic_vector(15 downto 0) :=  "0000000000000000";
         signal current_address_write: std_logic_vector(15 downto 0) := "0000001111101000"; 
         signal num_of_word: integer := 0;
-        signal k: integer := 0; 
+        signal now_counter: integer := 0;
         signal first_o_data_done: boolean:= false;
         signal check_errors: boolean:= false;
 
@@ -38,11 +38,13 @@ entity project_reti_logiche is
         signal i_data_bit: std_logic;
         signal i_data_elab: std_logic_vector(1 downto 0);
         signal i_data_counter: integer := 0 ;
+        signal current_word : std_logic_vector(0 to 7);
         signal R0,R1,R2,R3,R4,R5,R6,R7 : std_logic_vector(0 to 1);
         
         --reset segnali di lettura e scrittura
         signal rst_address_read: std_logic_vector(15 downto 0)  := "0000000000000000";
         signal rst_address_write: std_logic_vector(15 downto 0) := "0000001111101000"; 
+        signal current_output_word: std_logic_vector(15 downto 0) := "0000001111101000"; 
 
         
         begin
@@ -50,17 +52,71 @@ entity project_reti_logiche is
             process(i_data_bit,i_data_counter)
             begin
                 
-
-                o_we <= '0';
                 case current_state is
+                    when RST =>
+                        current_address_read <= rst_address_read;
+                        current_address_write <= rst_address_write;
+                        o_en <= '0';
+                        o_we <= '0';
+                        o_data <= "00000000";
+                        o_done <= '0';
+                        o_address <= rst_address_read;
+                        cur_fsm_state <= zero_zero;
+                        now_counter := 0;
+                        if(i_start = '1') then 
+                            next_state <= START;
+                            end if;
+                    
+                    when START =>
+                        current_address_read <= current_address_read;
+                        current_address_write <= current_address_write;
+                        o_en <= '1';
+                        o_we <= '0';
+                        o_data <= "00000000";
+                        o_done <= '0';
+                        o_address <= current_address_read;
+                        cur_fsm_state <= zero_zero;
+                        num_of_word <= TO_INTEGER(unsigned(i_data));
+                        current_address_read <= std_logic_vector(unsigned(current_address_read) + 1);
+                        next_state <= START_READ;
+                    
+                    when START_READ =>
+                        current_address_read <= current_address_read;
+                        current_address_write <= current_address_write;
+                        o_en <= '1';
+                        o_we <= '0';
+                        o_data <= "00000000";
+                        o_done <= '0';
+                        o_address <= current_address_read;
+                        cur_fsm_state <= zero_zero;
+                        num_of_word <= TO_INTEGER(unsigned(i_data));
+                        current_address_read <= std_logic_vector(unsigned(current_address_read) + 1);
+                        next_state <= W_NUM;
+
                     when zero_zero => 
-                    if(i_data_bit = '0') then
-                        next_state <= zero_zero;
-                        i_data_elab <= "00";
-                    elsif(i_data_bit = '1') then
-                        next_state <= one_zero;
-                        i_data_elab <= "11";
-                    end if;
+                        cur_fsm_state <= zero_zero;
+                        o_en <= '0';
+                        o_we <= '0';
+                        o_data <= "00000000";
+                        o_done <= '0';
+                        
+                        i_data_counter <= i_data_counter + 1;
+                            if(i_data_counter = 8) then
+                                i_data_counter <= 0;
+                                next_state <= DIV_WORD;
+                                now_counter <= now_counter + 1; 
+                            end if;
+
+                        if(i_data_bit = '0') then
+                            next_state <= zero_zero;
+                            i_data_elab <= "00";
+                        elsif(i_data_bit = '1') then
+                            next_state <= one_zero;
+                            i_data_elab <= "11";
+                        end if;
+
+                        
+
                 when one_zero => 
                     if(i_data_bit = '0') then
                         next_state <= zero_one;
@@ -132,15 +188,19 @@ entity project_reti_logiche is
 
     process(i_clk,i_rst,i_start,i_data)
     begin
+        if(i_rst = '1') then
+                current_state <= RST;
+        end if;
+                
         if(rising_edge(i_clk)) then
-            if(i_rst = '1') then
-                current_address_read <= rst_address_read;
-                    current_address_write <= rst_address_write;
-                    o_en <= '0';
-                    o_we <= '0';
-                    o_data <= "00000000";
-                    o_done <= '0';
-                    current_state <= zero_zero;
+           current_state <= next_state;
+        end if;
+
+    end process;
+
+                
+                
+                    
             elsif(i_start = '1') then
                 if (num_of_word = 0) then
                     num_of_word <= to_integer(unsigned(i_data));
