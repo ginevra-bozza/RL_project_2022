@@ -46,12 +46,13 @@ entity project_reti_logiche is
 
         
         begin
-            process
+            process(i_rst,i_start)
             begin
                 case current_state is
                     when RST =>
                         if(i_start = '1') then 
                             next_state <= START;
+                            cur_fsm_state <= zero_zero;
                         else
                             next_state <= current_state;
                         end if;
@@ -60,6 +61,9 @@ entity project_reti_logiche is
                    
                     when R_NUM =>
                         next_state <= START_READ;
+
+                    when START_READ =>
+                    next_state <= cur_fsm_state;
                     
                     when zero_zero => 
                         cur_fsm_state <= zero_zero;
@@ -123,21 +127,22 @@ entity project_reti_logiche is
                         else
                             next_state <= START_READ;                        
                         end if;
-                when DONE =>
-                        if(i_start = '1') then
-                            next_state <= START;
-                        elsif(i_rst = '1') then
-                            next_state <= RST;
-                        else 
-                            next_state <= current_state;
+                    
+                    when DONE =>
+                            if(i_start = '1') then
+                                next_state <= START;
+                            elsif(i_rst = '1') then
+                                next_state <= RST;
+                            else 
+                                next_state <= current_state;
+                            end if;
+                    when others =>
+                        if(check_errors = false) then
+                            check_errors <= true;
+                        else
+                            check_errors <= false;
                         end if;
-                when others =>
-                    if(check_errors = false) then
-                        check_errors <= true;
-                    else
-                        check_errors <= false;
-                    end if;
-                end case;
+                    end case;
             end process;
             
 
@@ -154,7 +159,6 @@ entity project_reti_logiche is
                         o_data <= "00000000";
                         o_done <= '0';
                         o_address <= rst_address_read;
-                        cur_fsm_state <= zero_zero;
                         now_counter <= 0;
                         
                     
@@ -177,10 +181,8 @@ entity project_reti_logiche is
                     when START_READ =>
                         current_word <= i_data;
                         current_address_read <= std_logic_vector(unsigned(current_address_read + "1000") );
-                        next_state <= cur_fsm_state;
 
                     when zero_zero => 
-                        cur_fsm_state <= zero_zero;
                         o_en <= '0';
                         
                         i_data_counter <= i_data_counter + 1;
@@ -198,7 +200,6 @@ entity project_reti_logiche is
                         
 
                 when one_zero => 
-                    cur_fsm_state <= one_zero;
                     o_en <= '0';
 
                     i_data_counter <= i_data_counter + 1;
@@ -216,7 +217,6 @@ entity project_reti_logiche is
                 
                 when one_one => 
 
-                cur_fsm_state <= one_one;
                 o_en <= '0';
 
                 i_data_counter <= i_data_counter + 1;
@@ -234,8 +234,6 @@ entity project_reti_logiche is
 
                 when zero_one => 
 
-                cur_fsm_state <= zero_one;
-                o_en <= '0';
 
                 i_data_counter <= i_data_counter + 1;
                 if(i_data_counter = 8) then
@@ -298,7 +296,6 @@ entity project_reti_logiche is
 
                 if(i_data_counter = 7) then
                     now_counter <= now_counter + 1;
-                    next_state <= DIV_WORD;
                 else
                     i_data_counter <= i_data_counter;
                 end if;
