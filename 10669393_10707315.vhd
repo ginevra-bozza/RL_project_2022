@@ -40,8 +40,8 @@ entity project_reti_logiche is
         signal i_data_elab: std_logic_vector(1 downto 0);
         signal counter_i_data: integer := 0 ;
         signal counter_i_data_for_signals: integer := 0 ;
-        signal current_word : std_logic_vector(0 to 7);
-        signal R0,R1,R2,R3,R4,R5,R6,R7 : std_logic_vector(0 to 1);
+        signal current_word : std_logic_vector(0 to 7):= "00000000";
+        signal R0,R1,R2,R3,R4,R5,R6,R7 : std_logic_vector(0 to 1) := "00"; 
         
         --reset segnali di lettura e scrittura
         signal rst_address_read: std_logic_vector(15 downto 0)  := "0000000000000000";
@@ -49,7 +49,8 @@ entity project_reti_logiche is
 
         
         begin
-            process(i_rst,i_start)
+            process(i_rst,i_start,current_address_read,current_address_write,
+            check_errors,num_of_word,now_counter,first_o_data_done,i_data_elab,counter_i_data,current_word)
             begin
                 case current_state is
                     when RST =>
@@ -149,7 +150,8 @@ entity project_reti_logiche is
             end process;
             
 
-            process(i_data,i_start,i_rst)
+            process(i_data,i_rst,i_start,current_address_read,current_address_write,
+            check_errors,num_of_word,now_counter,first_o_data_done,i_data_elab,counter_i_data,current_word)
             begin
 
                 
