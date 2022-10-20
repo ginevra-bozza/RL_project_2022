@@ -161,8 +161,8 @@ entity project_reti_logiche is
                 
                 case current_state is
                     when RST =>
-                        current_address_read <= rst_address_read;
-                        current_address_write <= rst_address_write;
+                        current_address_read <= std_logic_vector(unsigned(rst_address_read));
+                        current_address_write <= std_logic_vector(unsigned(rst_address_write));
                         o_en <= '0';
                         o_we <= '0';
                         o_data <= "00000000";
@@ -172,19 +172,19 @@ entity project_reti_logiche is
                         
                     
                     when START =>
-                        current_address_read <= current_address_read;
-                        current_address_write <= current_address_write;
+                        current_address_read <= std_logic_vector(unsigned(rst_address_read));
+                        current_address_write <= std_logic_vector(unsigned(rst_address_write));
                         o_en <= '1';
                         o_we <= '0';
                         o_data <= "00000000";
                         o_done <= '0';
-                        o_address <= current_address_read;
+                        o_address <= std_logic_vector(unsigned(current_address_read));
                        
 
                     when R_NUM =>
                         num_of_word <= TO_INTEGER(unsigned(i_data));
                         current_address_read <= std_logic_vector(unsigned(current_address_read + "1000"));
-                        o_address <= current_address_read;
+                        o_address <= std_logic_vector(unsigned(current_address_read));
                         
                         
                     when START_READ =>
@@ -259,12 +259,12 @@ entity project_reti_logiche is
                         o_we <= '1';
                         o_en <= '1';
                     if(not first_o_data_done) then
-                        o_address <= current_address_write;
+                        o_address <= std_logic_vector(unsigned(current_address_write));
                         o_data <= R0 & R1 & R2 & R3;
                         current_address_write <= std_logic_vector(unsigned(current_address_write + "1000") );
                         first_o_data_done <= true;
                     else   
-                        o_address <= current_address_write;
+                        o_address <= std_logic_vector(unsigned(current_address_write));
                         o_data <= R4 & R5 & R6 & R7 ;
                         current_address_write <= std_logic_vector(unsigned(current_address_write + "1000"));
                         first_o_data_done <= false;
