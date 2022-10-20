@@ -294,7 +294,14 @@ entity project_reti_logiche is
                     when 7 =>
                         R7 <= i_data_elab;
                     when others => 
-                        check_errors_signals_process <= true;
+                        R0 <= "00";
+                        R1 <= "00";
+                        R2 <= "00";
+                        R3 <= "00";
+                        R4 <= "00";
+                        R5 <= "00";
+                        R6 <= "00";
+                        R7 <= "00";
                     end case;
 
                 if(counter_i_data_for_signals = 7) then
