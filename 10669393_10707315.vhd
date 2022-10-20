@@ -49,8 +49,9 @@ entity project_reti_logiche is
 
         
         begin
-            process(i_rst,i_start,current_address_read,current_address_write,
-            check_errors,num_of_word,now_counter,first_o_data_done,i_data_elab,counter_i_data,current_word)
+            
+            logical_process: process(i_rst,i_start,current_address_read,current_address_write,
+            check_errors,num_of_word,now_counter,first_o_data_done,i_data_elab,counter_i_data,current_word,current_state,rst_address_read,rst_address_write)
             begin
                 case current_state is
                     when RST =>
@@ -150,7 +151,7 @@ entity project_reti_logiche is
             end process;
             
 
-            process(i_data,i_rst,i_start,current_address_read,current_address_write,
+            signal_process: process(i_data,i_rst,i_start,current_address_read,current_address_write,
             check_errors,num_of_word,now_counter,first_o_data_done,i_data_elab,counter_i_data,current_word)
             begin
 
