@@ -33,10 +33,13 @@ entity project_reti_logiche is
         signal now_counter: integer := 0;
         signal first_o_data_done: boolean:= false;
         signal check_errors: boolean:= false;
+        signal check_errors_signals_process: boolean:= false;
+        
 
 
         signal i_data_elab: std_logic_vector(1 downto 0);
-        signal i_data_counter: integer := 0 ;
+        signal counter_i_data: integer := 0 ;
+        signal counter_i_data_for_signals: integer := 0 ;
         signal current_word : std_logic_vector(0 to 7);
         signal R0,R1,R2,R3,R4,R5,R6,R7 : std_logic_vector(0 to 1);
         
@@ -68,11 +71,11 @@ entity project_reti_logiche is
                     when zero_zero => 
                         cur_fsm_state <= zero_zero;
                         
-                        if(i_data_counter = 8) then
+                        if(counter_i_data = 8) then
                             next_state <= DIV_WORD;
-                        elsif(current_word(i_data_counter) = '0') then
+                        elsif(current_word(counter_i_data) = '0') then
                             next_state <= zero_zero;
-                        elsif(current_word(i_data_counter) = '1') then
+                        elsif(current_word(counter_i_data) = '1') then
                             next_state <= one_zero;
                         else
                             next_state <= current_state;
@@ -83,12 +86,12 @@ entity project_reti_logiche is
                     when one_zero => 
                         cur_fsm_state <= one_zero;
 
-                        i_data_counter <= i_data_counter + 1;
-                        if(i_data_counter = 8) then
+                        counter_i_data <= counter_i_data + 1;
+                        if(counter_i_data = 8) then
                             next_state <= DIV_WORD;
-                        elsif(current_word(i_data_counter) = '0') then
+                        elsif(current_word(counter_i_data) = '0') then
                             next_state <= zero_one;
-                        elsif(current_word(i_data_counter) = '1') then
+                        elsif(current_word(counter_i_data) = '1') then
                             next_state <= one_one;
                         else
                         next_state <= current_state;
@@ -97,11 +100,11 @@ entity project_reti_logiche is
                     when one_one => 
                         cur_fsm_state <= one_one;
 
-                        if(i_data_counter = 8) then
+                        if(counter_i_data = 8) then
                             next_state <= DIV_WORD;
-                        elsif(current_word(i_data_counter) = '0') then
+                        elsif(current_word(counter_i_data) = '0') then
                             next_state <= zero_one;
-                        elsif(current_word(i_data_counter) = '1') then
+                        elsif(current_word(counter_i_data) = '1') then
                             next_state <= one_one;
                         else
                         next_state <= current_state;
@@ -111,11 +114,11 @@ entity project_reti_logiche is
                     when zero_one => 
                         cur_fsm_state <= zero_one;
 
-                        if(i_data_counter = 8) then
+                        if(counter_i_data = 8) then
                         next_state <= DIV_WORD;
-                        elsif(current_word(i_data_counter) = '0') then
+                        elsif(current_word(counter_i_data) = '0') then
                             next_state <= zero_zero;
-                        elsif(current_word(i_data_counter) = '1') then
+                        elsif(current_word(counter_i_data) = '1') then
                             next_state <= one_zero;
                         else
                         next_state <= current_state;
@@ -185,15 +188,15 @@ entity project_reti_logiche is
                     when zero_zero => 
                         o_en <= '0';
                         
-                        i_data_counter <= i_data_counter + 1;
-                            if(i_data_counter = 8) then
-                                i_data_counter <= 0;
+                        counter_i_data_for_signals <= counter_i_data_for_signals + 1;
+                            if(counter_i_data_for_signals = 8) then
+                                counter_i_data_for_signals <= 0;
                                 now_counter <= now_counter + 1; 
                             end if;
 
-                        if(current_word(i_data_counter) = '0') then
+                        if(current_word(counter_i_data_for_signals) = '0') then
                             i_data_elab <= "00";
-                        elsif(current_word(i_data_counter) = '1') then
+                        elsif(current_word(counter_i_data_for_signals) = '1') then
                             i_data_elab <= "11";
                         end if;
 
@@ -202,16 +205,16 @@ entity project_reti_logiche is
                 when one_zero => 
                     o_en <= '0';
 
-                    i_data_counter <= i_data_counter + 1;
-                    if(i_data_counter = 8) then
-                        i_data_counter <= 0;
+                    counter_i_data_for_signals <= counter_i_data_for_signals + 1;
+                    if(counter_i_data_for_signals = 8) then
+                        counter_i_data_for_signals <= 0;
                         now_counter <= now_counter + 1; 
                     end if;
 
 
-                    if(current_word(i_data_counter) = '0') then
+                    if(current_word(counter_i_data_for_signals) = '0') then
                         i_data_elab <= "01";
-                    elsif(current_word(i_data_counter) = '1') then
+                    elsif(current_word(counter_i_data_for_signals) = '1') then
                         i_data_elab <= "10";
                     end if;
                 
@@ -219,15 +222,15 @@ entity project_reti_logiche is
 
                 o_en <= '0';
 
-                i_data_counter <= i_data_counter + 1;
-                if(i_data_counter = 8) then
-                    i_data_counter <= 0;
+                counter_i_data_for_signals <= counter_i_data_for_signals + 1;
+                if(counter_i_data_for_signals = 8) then
+                    counter_i_data_for_signals <= 0;
                     now_counter <= now_counter + 1; 
                 end if;
 
-                    if(current_word(i_data_counter) = '0') then
+                    if(current_word(counter_i_data_for_signals) = '0') then
                         i_data_elab <= "10";
-                    elsif(current_word(i_data_counter) = '1') then
+                    elsif(current_word(counter_i_data_for_signals) = '1') then
                         i_data_elab <= "01";
                     end if;
 
@@ -235,15 +238,15 @@ entity project_reti_logiche is
                 when zero_one => 
 
 
-                i_data_counter <= i_data_counter + 1;
-                if(i_data_counter = 8) then
-                    i_data_counter <= 0;
+                counter_i_data_for_signals <= counter_i_data_for_signals + 1;
+                if(counter_i_data_for_signals = 8) then
+                    counter_i_data_for_signals <= 0;
                     now_counter <= now_counter + 1; 
                 end if;
 
-                    if(current_word(i_data_counter) = '0') then
+                    if(current_word(counter_i_data_for_signals) = '0') then
                         i_data_elab <= "11";
-                    elsif(current_word(i_data_counter) = '1') then
+                    elsif(current_word(counter_i_data_for_signals) = '1') then
                         i_data_elab <= "00";
                     end if;
                 when DIV_WORD =>
@@ -266,14 +269,14 @@ entity project_reti_logiche is
                         o_en <= '0';
                         
                 when others =>
-                    if(check_errors = false) then
-                        check_errors <= true;
+                    if(check_errors_signals_process = false) then
+                        check_errors_signals_process <= true;
                     else
-                    check_errors <= false;
+                    check_errors_signals_process <= false;
                     end if;
                 end case;
 
-                case i_data_counter is
+                case counter_i_data_for_signals is
                     when 0 =>
                         R0 <= i_data_elab;
                     when 1 =>
@@ -291,13 +294,13 @@ entity project_reti_logiche is
                     when 7 =>
                         R7 <= i_data_elab;
                     when others => 
-                        check_errors <= true;
+                        check_errors_signals_process <= true;
                     end case;
 
-                if(i_data_counter = 7) then
+                if(counter_i_data_for_signals = 7) then
                     now_counter <= now_counter + 1;
                 else
-                    i_data_counter <= i_data_counter;
+                    counter_i_data_for_signals <= counter_i_data_for_signals;
                 end if;
                 
                 
