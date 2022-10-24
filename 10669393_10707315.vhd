@@ -44,14 +44,14 @@ entity project_reti_logiche is
         signal R0,R1,R2,R3,R4,R5,R6,R7 : std_logic_vector(0 to 1) := "00"; 
         
         --reset segnali di lettura e scrittura
-        signal rst_address_read: std_logic_vector(15 downto 0)  := "0000000000000000";
-        signal rst_address_write: std_logic_vector(15 downto 0) := "0000001111101000"; 
+        --signal rst_address_read: std_logic_vector(15 downto 0)  := "0000000000000000";
+        --signal rst_address_write: std_logic_vector(15 downto 0) := "0000001111101000"; 
 
         
         begin
             
             logical_process: process(i_rst,i_start,current_address_read,current_address_write,
-            check_errors,num_of_word,now_counter,first_o_data_done,i_data_elab,counter_i_data,current_word,current_state,rst_address_read,rst_address_write,
+            check_errors,num_of_word,now_counter,first_o_data_done,i_data_elab,counter_i_data,current_word,current_state,--rst_address_read,rst_address_write,
             cur_fsm_state)
             begin
                 case current_state is
@@ -154,26 +154,25 @@ entity project_reti_logiche is
 
             signal_process: process(i_data,i_rst,i_start,current_address_read,current_address_write,
             check_errors,num_of_word,now_counter,first_o_data_done,i_data_elab,counter_i_data,current_word,
-            current_state,rst_address_read,rst_address_write,counter_i_data_for_signals,R0,R1,R2,R3,R4,R5,R6,R7,
+            current_state,--rst_address_read,rst_address_write,
+            counter_i_data_for_signals,R0,R1,R2,R3,R4,R5,R6,R7,
             check_errors_signals_process)
             begin
 
                 
                 case current_state is
                     when RST =>
-                        current_address_read <= std_logic_vector(unsigned(rst_address_read));
-                        current_address_write <= std_logic_vector(unsigned(rst_address_write));
+                        current_address_read <= "0000000000000000";
+                        current_address_write <= "0000001111101000";
                         o_en <= '0';
                         o_we <= '0';
                         o_data <= "00000000";
                         o_done <= '0';
-                        o_address <=  std_logic_vector(unsigned(rst_address_read));
+                        o_address <=  "0000000000000000";--std_logic_vector(unsigned(rst_address_read));
                         now_counter <= 0;
                         
                     
                     when START =>
-                        current_address_read <= std_logic_vector(unsigned(rst_address_read));
-                        current_address_write <= std_logic_vector(unsigned(rst_address_write));
                         o_en <= '1';
                         o_we <= '0';
                         o_data <= "00000000";
