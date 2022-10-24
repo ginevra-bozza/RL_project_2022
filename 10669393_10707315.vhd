@@ -167,7 +167,7 @@ entity project_reti_logiche is
                         o_we <= '0';
                         o_data <= "00000000";
                         o_done <= '0';
-                        o_address <= rst_address_read;
+                        o_address <=  std_logic_vector(unsigned(rst_address_read));
                         now_counter <= 0;
                         
                     
