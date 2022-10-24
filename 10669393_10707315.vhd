@@ -250,9 +250,9 @@ entity project_reti_logiche is
                 end if;
 
                     if(current_word(counter_i_data_for_signals) = '0') then
-                        i_data_elab <= "11";
-                    elsif(current_word(counter_i_data_for_signals) = '1') then
                         i_data_elab <= "00";
+                    elsif(current_word(counter_i_data_for_signals) = '1') then
+                        i_data_elab <= "11";
                     end if;
                 when DIV_WORD =>
                         o_we <= '1';
