@@ -33,20 +33,20 @@ architecture behavioural of project_reti_logiche is
     signal now_counter: integer := 0;
     signal first_o_data_done: boolean:= false;
     signal check_errors: boolean:= false;
-    signal check_errors_signals_process: boolean:= false;
+    --signal check_errors_signals_process: boolean:= false;
     
 
 
     signal i_data_elab: std_logic_vector(1 downto 0);
     signal counter_i_data: integer := 0 ;
-    signal counter_i_data_for_signals: integer := 0 ;
+    --signal counter_i_data_for_signals: integer := 0 ;
     signal current_word : std_logic_vector(0 to 7):= "00000000";
     signal R0,R1,R2,R3,R4,R5,R6,R7 : std_logic_vector(0 to 1) := "00"; 
     
    begin
     process(i_clk,i_rst,i_start,current_address_read,current_address_write,
     check_errors,num_of_word,now_counter,first_o_data_done,i_data_elab,counter_i_data,current_word,current_state,--rst_address_read,rst_address_write,
-    cur_fsm_state)
+    cur_fsm_state,next_state)
     begin
         if(i_rst = '1') then
                 current_state <= RST;
