@@ -19,11 +19,12 @@ entity project_reti_logiche is
     end project_reti_logiche;
 
 architecture behavioural of project_reti_logiche is
-    type state_type is (RST, START, R_NUM, START_READ, DONE, WRITE_FIRST, DIV_WORD, WRITE_SECOND, SET_ADD_RREAD, SET_ADD_WREAD, zero_zero, zero_one, one_zero, one_one); --FSM da specifica
+    type state_type is (RST, START, R_NUM, START_READ, DONE, WRITE_FIRST, DIV_WORD, WRITE_SECOND, SET_ADD_RREAD, SET_ADD_WREAD, SET_REG, zero_zero, zero_one, one_zero, one_one); --FSM da specifica
 
     signal current_state: state_type;
     signal next_state: state_type;
     signal cur_fsm_state: state_type;
+    signal next_fsm_state: state_type;
     --signal program_state: set_program_state;
     
     --segnali su cui lavoriamo, che vengono modificati
@@ -43,47 +44,7 @@ architecture behavioural of project_reti_logiche is
     signal current_word : std_logic_vector(0 to 7);
     signal R0,R1,R2,R3,R4,R5,R6,R7 : std_logic_vector(0 to 1); 
 
-    function set_reg(counter: integer) return boolean is
-        variable assigned: boolean;
-        begin
-        case counter is
-            when 0 =>
-                R0 <= i_data_elab;
-                assigned := true;
-            when 1 =>
-                R1 <= i_data_elab;
-                assigned := true;
-            when 2 =>
-                R2 <= i_data_elab;
-                assigned := true;
-            when 3 =>
-                R3 <= i_data_elab;
-                assigned := true;
-            when 4 =>
-                R4 <= i_data_elab;
-                assigned := true;
-            when 5 =>
-                R5 <= i_data_elab;
-                assigned := true;
-            when 6 =>
-                R6 <= i_data_elab;
-                assigned := true;
-            when 7 =>
-                R7 <= i_data_elab;
-                assigned := true;
-            when others => 
-                R0 <= "00";
-                R1 <= "00";
-                R2 <= "00";
-                R3 <= "00";
-                R4 <= "00";
-                R5 <= "00";
-                R6 <= "00";
-                R7 <= "00";
-                assigned := false;
-            end case;
-            return assigned;
-        end function;
+    
     
    begin
     process(i_clk,i_rst,i_start,current_address_read,current_address_write,
@@ -163,15 +124,15 @@ architecture behavioural of project_reti_logiche is
                         next_state <= SET_ADD_WREAD;
                     else
                         if(current_word(counter_i_data) = '0') then
-                            next_state <= zero_zero;
+                            next_fsm_state <= zero_zero;
                             i_data_elab <= "00";
                         elsif(current_word(counter_i_data) = '1') then
-                            next_state <= one_zero;
+                            next_fsm_state <= one_zero;
                             i_data_elab <= "11";
                         else
                             next_state <= current_state;
                         end if;
-                        set_reg(counter_i_data);
+                        next_state <= SET_REG;
                     end if;
                     
                 when one_zero => 
@@ -184,15 +145,15 @@ architecture behavioural of project_reti_logiche is
                         next_state <= SET_ADD_WREAD;
                     else
                         if(current_word(counter_i_data) = '0') then
-                            next_state <= zero_one;
+                            next_fsm_state <= zero_one;
                             i_data_elab <= "00";
                         elsif(current_word(counter_i_data) = '1') then
-                            next_state <= one_one;
+                            next_fsm_state <= one_one;
                             i_data_elab <= "11";
                         else
                         next_state <= current_state;
                         end if;
-                        set_reg(counter_i_data);
+                        next_state <= SET_REG;
                     end if;
                 
                 when one_one => 
@@ -204,15 +165,15 @@ architecture behavioural of project_reti_logiche is
                         next_state <= SET_ADD_WREAD;
                     else
                         if(current_word(counter_i_data) = '0') then
-                            next_state <= zero_one;
+                            next_fsm_state <= zero_one;
                             i_data_elab <= "01";
                         elsif(current_word(counter_i_data) = '1') then
-                            next_state <= one_one;
+                            next_fsm_state <= one_one;
                             i_data_elab <= "10";
                         else
                         next_state <= current_state;
                         end if;
-                        set_reg(counter_i_data);
+                        next_state <= SET_REG;
                     end if;
 
                 when zero_one => 
@@ -224,16 +185,47 @@ architecture behavioural of project_reti_logiche is
                         next_state <= SET_ADD_WREAD;
                     else
                         if(current_word(counter_i_data) = '0') then
-                            next_state <= zero_zero;
+                            next_fsm_state <= zero_zero;
                             i_data_elab <= "00";
                         elsif(current_word(counter_i_data) = '1') then
-                            next_state <= one_zero;
+                            next_fsm_state <= one_zero;
                             i_data_elab <= "11";
                         else
                         next_state <= current_state;
                         end if;
-                        set_reg(counter_i_data);
+                        next_state <= SET_REG;
                     end if;
+               
+                when  SET_REG=>
+                    case counter_i_data is
+                        when 0 =>
+                            R0 <= i_data_elab;
+                        when 1 =>
+                            R1 <= i_data_elab;
+                        when 2 =>
+                            R2 <= i_data_elab;
+                        when 3 =>
+                            R3 <= i_data_elab;
+                        when 4 =>
+                            R4 <= i_data_elab;
+                        when 5 =>
+                            R5 <= i_data_elab;
+                        when 6 =>
+                            R6 <= i_data_elab;
+                        when 7 =>
+                            R7 <= i_data_elab;
+                        when others => 
+                            R0 <= "00";
+                            R1 <= "00";
+                            R2 <= "00";
+                            R3 <= "00";
+                            R4 <= "00";
+                            R5 <= "00";
+                            R6 <= "00";
+                            R7 <= "00";
+                        end case;
+                    next_state <= next_fsm_state;
+                            
                 
                 when SET_ADD_WREAD =>
                     o_address <= current_address_write;
@@ -267,7 +259,8 @@ architecture behavioural of project_reti_logiche is
                             next_state <= current_state;
                             o_done <= '1';
                         end if;
-                        
+                
+                
                 when others =>
                     if(check_errors = false) then
                         check_errors <= true;
