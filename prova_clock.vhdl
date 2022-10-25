@@ -19,7 +19,7 @@ entity project_reti_logiche is
     end project_reti_logiche;
 
 architecture behavioural of project_reti_logiche is
-    type state_type is (RST, START, R_NUM, START_READ, DONE, WRITE_FIRST, DIV_WORD, WRITE_SECOND, zero_zero, zero_one, one_zero, one_one); --FSM da specifica
+    type state_type is (RST, START, R_NUM, START_READ, DONE, WRITE_FIRST, DIV_WORD, WRITE_SECOND, SET_ADD_RREAD, SET_ADD_WREAD, zero_zero, zero_one, one_zero, one_one); --FSM da specifica
 
     signal current_state: state_type;
     signal next_state: state_type;
@@ -27,21 +27,63 @@ architecture behavioural of project_reti_logiche is
     --signal program_state: set_program_state;
     
     --segnali su cui lavoriamo, che vengono modificati
-    signal current_address_read: std_logic_vector(15 downto 0) :=  "0000000000000000";
-    signal current_address_write: std_logic_vector(15 downto 0) := "0000001111101000"; 
-    signal num_of_word: integer := 0;
-    signal now_counter: integer := 0;
-    signal first_o_data_done: boolean:= false;
-    signal check_errors: boolean:= false;
+    signal current_address_read: std_logic_vector(15 downto 0);
+    signal current_address_write: std_logic_vector(15 downto 0); 
+    signal num_of_word: integer;
+    signal now_counter: integer;
+    signal first_o_data_done: boolean;
+    signal check_errors: boolean;
     --signal check_errors_signals_process: boolean:= false;
     
 
 
     signal i_data_elab: std_logic_vector(1 downto 0);
-    signal counter_i_data: integer := 0 ;
+    signal counter_i_data: integer;
     --signal counter_i_data_for_signals: integer := 0 ;
-    signal current_word : std_logic_vector(0 to 7):= "00000000";
-    signal R0,R1,R2,R3,R4,R5,R6,R7 : std_logic_vector(0 to 1) := "00"; 
+    signal current_word : std_logic_vector(0 to 7);
+    signal R0,R1,R2,R3,R4,R5,R6,R7 : std_logic_vector(0 to 1); 
+
+    function set_reg(counter: integer) return boolean is
+        variable assigned: boolean;
+        begin
+        case counter is
+            when 0 =>
+                R0 <= i_data_elab;
+                assigned := true;
+            when 1 =>
+                R1 <= i_data_elab;
+                assigned := true;
+            when 2 =>
+                R2 <= i_data_elab;
+                assigned := true;
+            when 3 =>
+                R3 <= i_data_elab;
+                assigned := true;
+            when 4 =>
+                R4 <= i_data_elab;
+                assigned := true;
+            when 5 =>
+                R5 <= i_data_elab;
+                assigned := true;
+            when 6 =>
+                R6 <= i_data_elab;
+                assigned := true;
+            when 7 =>
+                R7 <= i_data_elab;
+                assigned := true;
+            when others => 
+                R0 <= "00";
+                R1 <= "00";
+                R2 <= "00";
+                R3 <= "00";
+                R4 <= "00";
+                R5 <= "00";
+                R6 <= "00";
+                R7 <= "00";
+                assigned := false;
+            end case;
+            return assigned;
+        end function;
     
    begin
     process(i_clk,i_rst,i_start,current_address_read,current_address_write,
@@ -55,46 +97,62 @@ architecture behavioural of project_reti_logiche is
         if(rising_edge(i_clk)) then
             case current_state is
                 when RST =>
+                    --
+                    current_address_read <= "0000000000000000";
+                    current_address_write <= "0000001111101000";
+                    o_en <= '0';
+                    o_we <= '0';
+                    o_data <= "00000000";
+                    o_done <= '0';
+                    o_address <=  "0000000000000000";--std_logic_vector(unsigned(rst_address_read));
+                    now_counter <= 0;
+                    num_of_word <= 0;
+                    counter_i_data <= 0;
+                    first_o_data_done <= false;
+                    check_errors <= false;
+                    current_word <= "00000000";
+                    R0 <= "00";R1<="00";R2<= "00";R3<= "00";R4<= "00";R5<= "00";R6<= "00";R7<= "00";
+                    --
                     if(i_start = '1') then 
                         next_state <= START;
-                        cur_fsm_state <= zero_zero;
-                        --
-                        current_address_read <= "0000000000000000";
-                        current_address_write <= "0000001111101000";
-                        o_en <= '0';
-                        o_we <= '0';
-                        o_data <= "00000000";
-                        o_done <= '0';
-                        o_address <=  "0000000000000000";--std_logic_vector(unsigned(rst_address_read));
-                        now_counter <= 0;
-                        --
+                        cur_fsm_state <= zero_zero;    
                     else
                         next_state <= current_state;
                     end if;
+
+                    
                 when START =>
                     next_state <= R_NUM;
                     --
                     o_en <= '1';
                     o_we <= '0';
-                    o_data <= "00000000";
-                    o_done <= '0';
                     o_address <= std_logic_vector(unsigned(current_address_read));
                     --
                
                 when R_NUM =>
-                    next_state <= START_READ;
+                    next_state <= SET_ADD_RREAD;
+                    o_en <= '0';
+                    o_we <= '0';
                     --
                     num_of_word <= TO_INTEGER(unsigned(i_data));
-                    current_address_read <= std_logic_vector(unsigned(current_address_read + "1000"));
-                    o_address <= std_logic_vector(unsigned(current_address_read));
+                    current_address_read <= std_logic_vector(unsigned(current_address_read) + 1);
+                    
                     --
+                when SET_ADD_RREAD =>
+                    o_en <= '1';
+                    o_we <= '0';
+                    o_address <= std_logic_vector(unsigned(current_address_read));
+
+                    next_state <= START_READ;
 
                 when START_READ =>
-                next_state <= cur_fsm_state;
-                --
-                current_word <= i_data;
-                current_address_read <= std_logic_vector(unsigned(current_address_read + "1000") );
-                --
+                    next_state <= cur_fsm_state;
+                    o_en <= '0';
+                    o_we <= '0';
+                    --
+                    current_word <= i_data;
+                    current_address_read <= std_logic_vector(unsigned(current_address_read) + 1 );
+                    --
                 
                 when zero_zero => 
                     cur_fsm_state <= zero_zero;
@@ -102,101 +160,114 @@ architecture behavioural of project_reti_logiche is
                     if(counter_i_data = 8) then
                         counter_i_data <= 0;
                         now_counter <= now_counter + 1; 
-                        next_state <= DIV_WORD;
-                    elsif(current_word(counter_i_data) = '0') then
-                        next_state <= zero_zero;
-                        i_data_elab <= "00";
-                    elsif(current_word(counter_i_data) = '1') then
-                        next_state <= one_zero;
-                        i_data_elab <= "11";
+                        next_state <= SET_ADD_WREAD;
                     else
-                        next_state <= current_state;
+                        if(current_word(counter_i_data) = '0') then
+                            next_state <= zero_zero;
+                            i_data_elab <= "00";
+                        elsif(current_word(counter_i_data) = '1') then
+                            next_state <= one_zero;
+                            i_data_elab <= "11";
+                        else
+                            next_state <= current_state;
+                        end if;
+                        set_reg(counter_i_data);
                     end if;
                     
-
                 when one_zero => 
                     cur_fsm_state <= one_zero;
 
                     counter_i_data <= counter_i_data + 1;
                     if(counter_i_data = 8) then
-                        next_state <= DIV_WORD;
+                        counter_i_data <= 0;
                         now_counter <= now_counter + 1; 
-                        next_state <= DIV_WORD;
-                    elsif(current_word(counter_i_data) = '0') then
-                        next_state <= zero_one;
-                        i_data_elab <= "00";
-                    elsif(current_word(counter_i_data) = '1') then
-                        next_state <= one_one;
-                        i_data_elab <= "11";
+                        next_state <= SET_ADD_WREAD;
                     else
-                    next_state <= current_state;
+                        if(current_word(counter_i_data) = '0') then
+                            next_state <= zero_one;
+                            i_data_elab <= "00";
+                        elsif(current_word(counter_i_data) = '1') then
+                            next_state <= one_one;
+                            i_data_elab <= "11";
+                        else
+                        next_state <= current_state;
+                        end if;
+                        set_reg(counter_i_data);
                     end if;
                 
                 when one_one => 
                     cur_fsm_state <= one_one;
 
                     if(counter_i_data = 8) then
-                        next_state <= DIV_WORD;
+                        counter_i_data <= 0;
                         now_counter <= now_counter + 1; 
-                        next_state <= DIV_WORD;
-                    elsif(current_word(counter_i_data) = '0') then
-                        next_state <= zero_one;
-                        i_data_elab <= "01";
-                    elsif(current_word(counter_i_data) = '1') then
-                        next_state <= one_one;
-                        i_data_elab <= "10";
+                        next_state <= SET_ADD_WREAD;
                     else
-                    next_state <= current_state;
+                        if(current_word(counter_i_data) = '0') then
+                            next_state <= zero_one;
+                            i_data_elab <= "01";
+                        elsif(current_word(counter_i_data) = '1') then
+                            next_state <= one_one;
+                            i_data_elab <= "10";
+                        else
+                        next_state <= current_state;
+                        end if;
+                        set_reg(counter_i_data);
                     end if;
-
 
                 when zero_one => 
                     cur_fsm_state <= zero_one;
-                    now_counter <= now_counter + 1; 
-                    next_state <= DIV_WORD;
 
                     if(counter_i_data = 8) then
-                    next_state <= DIV_WORD;
-                    elsif(current_word(counter_i_data) = '0') then
-                        next_state <= zero_zero;
-                        i_data_elab <= "00";
-                    elsif(current_word(counter_i_data) = '1') then
-                        next_state <= one_zero;
-                        i_data_elab <= "11";
+                        counter_i_data <= 0;
+                        now_counter <= now_counter + 1; 
+                        next_state <= SET_ADD_WREAD;
                     else
-                    next_state <= current_state;
+                        if(current_word(counter_i_data) = '0') then
+                            next_state <= zero_zero;
+                            i_data_elab <= "00";
+                        elsif(current_word(counter_i_data) = '1') then
+                            next_state <= one_zero;
+                            i_data_elab <= "11";
+                        else
+                        next_state <= current_state;
+                        end if;
+                        set_reg(counter_i_data);
                     end if;
                 
+                when SET_ADD_WREAD =>
+                    o_address <= current_address_write;
+                    current_address_write <= std_logic_vector(unsigned(current_address_write) + 1);
+                
                 when DIV_WORD =>
-                    if(now_counter = num_of_word) then
-                        next_state <= DONE;
-                    else
-                        next_state <= START_READ;                        
-                    end if;
                     o_we <= '1';
                     o_en <= '1';
                 if(not first_o_data_done) then
-                    o_address <= std_logic_vector(unsigned(current_address_write));
                     o_data <= R0 & R1 & R2 & R3;
-                    current_address_write <= std_logic_vector(unsigned(current_address_write + "1000") );
                     first_o_data_done <= true;
+                    next_state <= SET_ADD_WREAD;
                 else   
-                    o_address <= std_logic_vector(unsigned(current_address_write));
                     o_data <= R4 & R5 & R6 & R7 ;
-                    current_address_write <= std_logic_vector(unsigned(current_address_write + "1000"));
                     first_o_data_done <= false;
+                end if;
+                if(now_counter = num_of_word and first_o_data_done) then
+                    next_state <= DONE;
+                elsif(first_o_data_done) then
+                    next_state <= START_READ;                        
                 end if;
                 
                 when DONE =>
+                        o_en <= '0';
+                        o_we <= '0';
+                        
                         if(i_start = '1') then
                             next_state <= START;
-                        elsif(i_rst = '1') then
-                            next_state <= RST;
+                            o_done <= '0';                            
                         else 
                             next_state <= current_state;
+                            o_done <= '1';
                         end if;
-                        o_done <= '1';
-                        o_en <= '0';
+                        
                 when others =>
                     if(check_errors = false) then
                         check_errors <= true;
@@ -206,40 +277,12 @@ architecture behavioural of project_reti_logiche is
                 end case;
                 current_state <= next_state;
 
-                case counter_i_data is
-                    when 0 =>
-                        R0 <= i_data_elab;
-                    when 1 =>
-                        R1 <= i_data_elab;
-                    when 2 =>
-                        R2 <= i_data_elab;
-                    when 3 =>
-                        R3 <= i_data_elab;
-                    when 4 =>
-                        R4 <= i_data_elab;
-                    when 5 =>
-                        R5 <= i_data_elab;
-                    when 6 =>
-                        R6 <= i_data_elab;
-                    when 7 =>
-                        R7 <= i_data_elab;
-                    when others => 
-                        R0 <= "00";
-                        R1 <= "00";
-                        R2 <= "00";
-                        R3 <= "00";
-                        R4 <= "00";
-                        R5 <= "00";
-                        R6 <= "00";
-                        R7 <= "00";
-                    end case;
-
-                    if(counter_i_data = 7) then
-                        now_counter <= now_counter + 1;
-                    else
-                        counter_i_data <= counter_i_data;
-                    end if;
-                    
+                if(counter_i_data = 7) then
+                    now_counter <= now_counter + 1;
+                else
+                    counter_i_data <= counter_i_data;
+                end if;
+                
         end if;
 
 
