@@ -31,7 +31,7 @@ architecture behavioural of project_reti_logiche is
     signal current_address_read: std_logic_vector(15 downto 0);
     signal current_address_write: std_logic_vector(15 downto 0); 
     signal num_of_word: integer;
-    signal now_counter: integer;
+    --signal now_counter: integer;
     signal first_o_data_done: boolean;
     signal check_errors: boolean;
     signal check_done: boolean;
@@ -57,11 +57,11 @@ architecture behavioural of project_reti_logiche is
     begin
         --counter_i_data := 0;
         if(i_rst = '1') then
-                current_state <= RST;
+                next_state <= RST;
         end if;
                 
         if(rising_edge(i_clk)) then
-            case current_state is
+            case next_state is
                 when RST =>
                     --
                     current_address_read <= "0000000000000000";
@@ -98,13 +98,12 @@ architecture behavioural of project_reti_logiche is
                     --
                
                 when R_NUM =>
-                    next_state <= SET_ADD_RREAD;
                     o_en <= '0';
                     o_we <= '0';
                     --
                     num_of_word <= TO_INTEGER(unsigned(i_data));
                     current_address_read <= std_logic_vector(unsigned(current_address_read) + 1);
-                    
+                    next_state <= SET_ADD_RREAD;
                     --
                 when SET_ADD_RREAD =>
                     o_en <= '1';
@@ -241,7 +240,6 @@ architecture behavioural of project_reti_logiche is
                     o_we <= '1';
                     o_en <= '1';
                     o_address <= current_address_write;
-                    current_address_write <= std_logic_vector(unsigned(current_address_write) + 1);
                     next_state <= DIV_WORD;
                 
                 when DIV_WORD =>
@@ -254,6 +252,7 @@ architecture behavioural of project_reti_logiche is
                     first_o_data_done <= false;
                     check_written_word <= true;
                 end if;
+                current_address_write <= std_logic_vector(unsigned(current_address_write) + 1);
 
                 if(now_counter = num_of_word and check_written_word) then
                     next_state <= SET_DONE;
@@ -288,7 +287,7 @@ architecture behavioural of project_reti_logiche is
                         check_errors <= false;
                     end if;
                 end case;
-                current_state <= next_state;
+                --current_state <= next_state;
 
         end if;
 
