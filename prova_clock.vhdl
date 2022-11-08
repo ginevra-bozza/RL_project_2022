@@ -39,7 +39,7 @@ architecture behavioural of project_reti_logiche is
 
 
     signal i_data_elab: std_logic_vector(1 downto 0);
-    signal counter_i_data: integer;
+    --signal counter_i_data: integer;
     --signal counter_i_data_for_signals: integer := 0 ;
     signal current_word : std_logic_vector(0 to 7);
     signal R0,R1,R2,R3,R4,R5,R6,R7 : std_logic_vector(0 to 1); 
@@ -50,8 +50,9 @@ architecture behavioural of project_reti_logiche is
     process(i_clk,i_rst,i_start,current_address_read,current_address_write,
     check_errors,num_of_word,now_counter,first_o_data_done,i_data_elab,counter_i_data,current_word,current_state,--rst_address_read,rst_address_write,
     cur_fsm_state,next_state)
+    variable counter_i_data : natural range 0 to 8 := 0;
     begin
-        counter_i_data <= 0;
+        counter_i_data := 0;
         if(i_rst = '1') then
                 current_state <= RST;
         end if;
@@ -119,9 +120,9 @@ architecture behavioural of project_reti_logiche is
                 when zero_zero => 
                     cur_fsm_state <= zero_zero;
                     
-                    counter_i_data <= counter_i_data + 1;
+                    counter_i_data := counter_i_data + 1;
                     if(counter_i_data = 8) then
-                        counter_i_data <= 0;
+                        counter_i_data := 0;
                         now_counter <= now_counter + 1; 
                         next_state <= SET_ADD_WREAD;
                     else
@@ -140,9 +141,9 @@ architecture behavioural of project_reti_logiche is
                 when one_zero => 
                     cur_fsm_state <= one_zero;
 
-                    counter_i_data <= counter_i_data + 1;
+                    counter_i_data := counter_i_data + 1;
                     if(counter_i_data = 8) then
-                        counter_i_data <= 0;
+                        counter_i_data := 0;
                         now_counter <= now_counter + 1; 
                         next_state <= SET_ADD_WREAD;
                     else
@@ -161,9 +162,9 @@ architecture behavioural of project_reti_logiche is
                 when one_one => 
                     cur_fsm_state <= one_one;
 
-                    counter_i_data <= counter_i_data + 1;
+                    counter_i_data := counter_i_data + 1;
                     if(counter_i_data = 8) then
-                        counter_i_data <= 0;
+                        counter_i_data := 0;
                         now_counter <= now_counter + 1; 
                         next_state <= SET_ADD_WREAD;
                     else
@@ -182,9 +183,9 @@ architecture behavioural of project_reti_logiche is
                 when zero_one => 
                     cur_fsm_state <= zero_one;
 
-                    counter_i_data <= counter_i_data + 1;
+                    counter_i_data := counter_i_data + 1;
                     if(counter_i_data = 8) then
-                        counter_i_data <= 0;
+                        counter_i_data := 0;
                         now_counter <= now_counter + 1; 
                         next_state <= SET_ADD_WREAD;
                     else
@@ -277,7 +278,7 @@ architecture behavioural of project_reti_logiche is
                 if(counter_i_data = 7) then
                     now_counter <= now_counter + 1;
                 else
-                    counter_i_data <= counter_i_data;
+                    counter_i_data := counter_i_data;
                 end if;
                 
         end if;
