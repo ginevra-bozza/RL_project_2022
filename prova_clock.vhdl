@@ -119,6 +119,7 @@ architecture behavioural of project_reti_logiche is
                 when zero_zero => 
                     cur_fsm_state <= zero_zero;
                     
+                    counter_i_data <= counter_i_data + 1;
                     if(counter_i_data = 8) then
                         counter_i_data <= 0;
                         now_counter <= now_counter + 1; 
@@ -160,6 +161,7 @@ architecture behavioural of project_reti_logiche is
                 when one_one => 
                     cur_fsm_state <= one_one;
 
+                    counter_i_data <= counter_i_data + 1;
                     if(counter_i_data = 8) then
                         counter_i_data <= 0;
                         now_counter <= now_counter + 1; 
@@ -180,6 +182,7 @@ architecture behavioural of project_reti_logiche is
                 when zero_one => 
                     cur_fsm_state <= zero_one;
 
+                    counter_i_data <= counter_i_data + 1;
                     if(counter_i_data = 8) then
                         counter_i_data <= 0;
                         now_counter <= now_counter + 1; 
