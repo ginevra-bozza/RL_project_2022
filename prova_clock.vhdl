@@ -51,6 +51,7 @@ architecture behavioural of project_reti_logiche is
     check_errors,num_of_word,now_counter,first_o_data_done,i_data_elab,counter_i_data,current_word,current_state,--rst_address_read,rst_address_write,
     cur_fsm_state,next_state)
     begin
+        counter_i_data <= 0;
         if(i_rst = '1') then
                 current_state <= RST;
         end if;
@@ -68,7 +69,7 @@ architecture behavioural of project_reti_logiche is
                     o_address <=  "0000000000000000";--std_logic_vector(unsigned(rst_address_read));
                     now_counter <= 0;
                     num_of_word <= 0;
-                    counter_i_data <= 0;
+                    --counter_i_data <= 0;
                     first_o_data_done <= false;
                     check_errors <= false;
                     current_word <= "00000000";
