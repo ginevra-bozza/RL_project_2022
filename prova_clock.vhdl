@@ -35,6 +35,7 @@ architecture behavioural of project_reti_logiche is
     signal first_o_data_done: boolean;
     signal check_errors: boolean;
     signal check_done: boolean;
+    signal check_written_word: boolean;
     --signal check_errors_signals_process: boolean:= false;
     
 
@@ -50,7 +51,7 @@ architecture behavioural of project_reti_logiche is
    begin
     process(i_clk,i_rst,i_start,current_address_read,current_address_write,
     check_errors,num_of_word,first_o_data_done,i_data_elab,current_word,current_state,--rst_address_read,rst_address_write,
-    cur_fsm_state,next_state)
+    cur_fsm_state,next_state,check_written_word,check_done,check_errors)
     variable counter_i_data : natural range 0 to 8 := 0;
     variable now_counter : natural := 0;
     begin
@@ -76,6 +77,7 @@ architecture behavioural of project_reti_logiche is
                     first_o_data_done <= false;
                     check_errors <= false;
                     check_done <= false;
+                    check_written_word <= false;
                     current_word <= "00000000";
                     R0 <= "00";R1<="00";R2<= "00";R3<= "00";R4<= "00";R5<= "00";R6<= "00";R7<= "00";
                     --
@@ -250,11 +252,13 @@ architecture behavioural of project_reti_logiche is
                 else   
                     o_data <= R4 & R5 & R6 & R7 ;
                     first_o_data_done <= false;
+                    check_written_word <= true;
                 end if;
-                if(now_counter = num_of_word and first_o_data_done) then
-                    next_state <= DONE;
-                elsif(first_o_data_done) then
-                    next_state <= START_READ;                        
+
+                if(now_counter = num_of_word and check_written_word) then
+                    next_state <= SET_DONE;
+                elsif(check_written_word) then
+                    next_state <= SET_ADD_RREAD;                        
                 end if;
 
                 when SET_DONE =>
