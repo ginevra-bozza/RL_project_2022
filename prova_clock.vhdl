@@ -237,6 +237,8 @@ architecture behavioural of project_reti_logiche is
                             counter_i_data := 0;
                             now_counter := now_counter + 1; 
                             next_state <= SET_ADD_W;
+                            
+                            cur_fsm_state <= next_fsm_state;
                         when others => 
                             R0 <= "00";
                             R1 <= "00";
