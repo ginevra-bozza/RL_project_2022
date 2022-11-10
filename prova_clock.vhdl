@@ -38,6 +38,7 @@ architecture behavioural of project_reti_logiche is
     signal check_errors: boolean;
     signal check_done: boolean;
     signal check_written_word: boolean;
+    signal check_read: boolean;
     --signal check_errors_signals_process: boolean:= false;
     
 
@@ -82,6 +83,7 @@ architecture behavioural of project_reti_logiche is
                     check_errors <= false;
                     check_done <= false;
                     check_written_word <= false;
+                    check_read <= false;
                     current_word <= "00000000";
                     R0 <= "00";R1<="00";R2<= "00";R3<= "00";R4<= "00";R5<= "00";R6<= "00";R7<= "00";
                     --
@@ -100,14 +102,20 @@ architecture behavioural of project_reti_logiche is
                     o_we <= '0';
                     o_address <= std_logic_vector(unsigned(current_address_read));
                     --
-               
+                                   
                 when R_NUM =>
                     o_en <= '0';
                     o_we <= '0';
                     --
                     num_of_word <= TO_INTEGER(unsigned(i_data));
                     next_address_read <= std_logic_vector(unsigned(current_address_read) + 1);
-                    next_state <= SET_ADD_RREAD;
+                    if(check_read) then
+                        next_state <= SET_ADD_RREAD;
+                        check_read <= false;
+                    else 
+                        next_state <= R_NUM;
+                        check_read <= true;
+                    end if;
                     --
                 when SET_ADD_RREAD =>
                     o_en <= '1';
@@ -118,12 +126,18 @@ architecture behavioural of project_reti_logiche is
                     next_state <= START_READ;
 
                 when START_READ =>
-                    next_state <= cur_fsm_state;
                     o_en <= '0';
                     o_we <= '0';
                     --
                     current_word <= i_data;
                     next_address_read <= std_logic_vector(unsigned(current_address_read) + 1 );
+                    if(check_read) then
+                        next_state <= cur_fsm_state;
+                        check_read <= false;
+                    else 
+                        next_state <= START_READ;
+                        check_read <= true;
+                    end if;
                     --
                 
                 when zero_zero => 
