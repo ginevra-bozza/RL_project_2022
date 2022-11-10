@@ -146,20 +146,15 @@ architecture behavioural of project_reti_logiche is
                     if(current_word(counter_i_data) = '0') then
                             next_fsm_state <= zero_zero;
                             i_data_elab <= "00";
+                            next_state <= SET_REG;
                         elsif(current_word(counter_i_data) = '1') then
                             next_fsm_state <= one_zero;
                             i_data_elab <= "11";
+                            next_state <= SET_REG;
                         else
                             next_state <= zero_zero;
                         end if;
-                        next_state <= SET_REG;
-                    if(counter_i_data = 7) then
-                        counter_i_data := 0;
-                        now_counter := now_counter + 1; 
-                        next_state <= SET_ADD_WREAD;
-                    else
-                        
-                    end if;
+                    
                     counter_i_data := counter_i_data + 1;
 
                     
@@ -274,6 +269,7 @@ architecture behavioural of project_reti_logiche is
 
                 if(now_counter = num_of_word and check_written_word) then
                     next_state <= SET_DONE;
+                    now_counter := 0;
                 elsif(check_written_word) then
                     next_state <= SET_ADD_RREAD;                        
                 end if;
