@@ -19,7 +19,7 @@ entity project_reti_logiche is
     end project_reti_logiche;
 
 architecture behavioural of project_reti_logiche is
-    type state_type is (RST, START, R_NUM, START_READ, DONE, WRITE_FIRST, DIV_WORD, WRITE_SECOND, SET_ADD_RREAD, SET_ADD_WREAD, SET_REG, SET_DONE, zero_zero, zero_one, one_zero, one_one); --FSM da specifica
+    type state_type is (RST, START, R_NUM, START_READ, DONE, WRITE_FIRST, DIV_WORD_ONE, DIV_WORD_TWO, WRITE_SECOND, SET_ADD_R, SET_ADD_W, SET_REG, SET_DONE, zero_zero, zero_one, one_zero, one_one); --FSM da specifica
 
     --signal current_state: state_type;
     signal next_state: state_type;
@@ -110,14 +110,14 @@ architecture behavioural of project_reti_logiche is
                     num_of_word <= TO_INTEGER(unsigned(i_data));
                     next_address_read <= std_logic_vector(unsigned(current_address_read) + 1);
                     if(check_read) then
-                        next_state <= SET_ADD_RREAD;
+                        next_state <= SET_ADD_R;
                         check_read <= false;
                     else 
                         next_state <= R_NUM;
                         check_read <= true;
                     end if;
                     --
-                when SET_ADD_RREAD =>
+                when SET_ADD_R =>
                     o_en <= '1';
                     o_we <= '0';
                     o_address <= std_logic_vector(unsigned(next_address_read));
@@ -155,7 +155,6 @@ architecture behavioural of project_reti_logiche is
                             next_state <= zero_zero;
                         end if;
                     
-                    counter_i_data := counter_i_data + 1;
 
                     
                 when one_zero => 
@@ -172,7 +171,6 @@ architecture behavioural of project_reti_logiche is
                     else
                     next_state <= one_zero;
                     end if;
-                    counter_i_data := counter_i_data + 1;
                 
                 when one_one => 
                     cur_fsm_state <= one_one;
@@ -190,7 +188,6 @@ architecture behavioural of project_reti_logiche is
                         next_state <= one_one;
                     end if;
                         
-                    counter_i_data := counter_i_data + 1;
                 
                 when zero_one => 
                     cur_fsm_state <= zero_one;
@@ -208,7 +205,6 @@ architecture behavioural of project_reti_logiche is
                         next_state <= zero_one;
                     end if;
                         
-                    counter_i_data := counter_i_data + 1; 
                
                 when  SET_REG=>
                     
@@ -217,23 +213,30 @@ architecture behavioural of project_reti_logiche is
                     case counter_i_data is
                         when 0 =>
                             R0 <= i_data_elab;
+                            counter_i_data := counter_i_data + 1; 
                         when 1 =>
                             R1 <= i_data_elab;
+                            counter_i_data := counter_i_data + 1; 
                         when 2 =>
                             R2 <= i_data_elab;
+                            counter_i_data := counter_i_data + 1; 
                         when 3 =>
                             R3 <= i_data_elab;
+                            counter_i_data := counter_i_data + 1;                             
                         when 4 =>
                             R4 <= i_data_elab;
+                            counter_i_data := counter_i_data + 1; 
                         when 5 =>
                             R5 <= i_data_elab;
+                            counter_i_data := counter_i_data + 1;                            
                         when 6 =>
                             R6 <= i_data_elab;
+                            counter_i_data := counter_i_data + 1;                             
                         when 7 =>
                             R7 <= i_data_elab;
                             counter_i_data := 0;
                             now_counter := now_counter + 1; 
-                            next_state <= SET_ADD_WREAD;
+                            next_state <= SET_ADD_W;
                         when others => 
                             R0 <= "00";
                             R1 <= "00";
@@ -247,32 +250,37 @@ architecture behavioural of project_reti_logiche is
                     
                             
                 
-                when SET_ADD_WREAD =>
+                when SET_ADD_W =>
                     o_we <= '1';
                     o_en <= '1';
                     o_address <= current_address_write;
-                    next_state <= DIV_WORD;
+                    
+                    if(not first_o_data_done) then
+                        next_state <= DIV_WORD_ONE;
+                        first_o_data_done <= true;
+                    else 
+                        next_state <= DIV_WORD_TWO;
+                        first_o_data_done <= false;
+                    end if;
+
                     next_address_write <= std_logic_vector(unsigned(current_address_write) + 1);
 
                 
-                when DIV_WORD =>
-                if(not first_o_data_done) then
+                when DIV_WORD_ONE =>
                     o_data <= R0 & R1 & R2 & R3;
-                    first_o_data_done <= true;
-                    next_state <= SET_ADD_WREAD;
-                else   
-                    o_data <= R4 & R5 & R6 & R7 ;
-                    first_o_data_done <= false;
-                    check_written_word <= true;
-                end if;
-                current_address_write <= next_address_write;
+                    next_state <= SET_ADD_W;
+                    current_address_write <= next_address_write;
 
-                if(now_counter = num_of_word and check_written_word) then
-                    next_state <= SET_DONE;
-                    now_counter := 0;
-                elsif(check_written_word) then
-                    next_state <= SET_ADD_RREAD;                        
-                end if;
+                when DIV_WORD_TWO =>
+                    o_data <= R4 & R5 & R6 & R7 ;
+                    current_address_write <= next_address_write;
+
+                    if(now_counter = num_of_word) then
+                        next_state <= SET_DONE;
+                        now_counter := 0;
+                    else
+                        next_state <= SET_ADD_R; 
+                    end if;
 
                 when SET_DONE =>
                     o_en <= '0';
