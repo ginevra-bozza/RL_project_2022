@@ -295,10 +295,13 @@ architecture behavioural of project_reti_logiche is
                     if(i_start = '0') then
                         next_state <= DONE;
                         o_done <= '0';
-                        check_done <= true;    
+                        check_done <= true;
+                        current_address_read <= "0000000000000000";
+                        current_address_write <= "0000001111101000";
+                        next_address_read <= "0000000000000000";
+                        next_address_write <= "0000001111101000";    
                     elsif(i_start = '0' and check_done) then
-                        --next_state <= START;
-                        next_state <= RST;
+                        next_state <= START;
                         check_done <= false;
                     else 
                         next_state <= DONE;
