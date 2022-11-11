@@ -297,7 +297,8 @@ architecture behavioural of project_reti_logiche is
                         o_done <= '0';
                         check_done <= true;    
                     elsif(i_start = '0' and check_done) then
-                        next_state <= START;
+                        --next_state <= START;
+                        next_state <= RST;
                         check_done <= false;
                     else 
                         next_state <= DONE;
