@@ -122,8 +122,11 @@ architecture behavioural of project_reti_logiche is
                     o_we <= '0';
                     o_address <= std_logic_vector(unsigned(next_address_read));
                     current_address_read <= std_logic_vector(unsigned(next_address_read));
-
-                    next_state <= START_READ;
+                    if(num_of_word = 0) then
+                        next_state <= SET_DONE;
+                    else
+                        next_state <= START_READ;
+                    end if;
 
                 when START_READ =>
                     o_en <= '0';
@@ -293,16 +296,17 @@ architecture behavioural of project_reti_logiche is
                 when DONE =>
                     
                     if(i_start = '0') then
-                        next_state <= DONE;
+                        --next_state <= DONE;
+                        next_state <= RST;
                         o_done <= '0';
                         check_done <= true;
                         current_address_read <= "0000000000000000";
                         current_address_write <= "0000001111101000";
                         next_address_read <= "0000000000000000";
                         next_address_write <= "0000001111101000";    
-                    elsif(i_start = '0' and check_done) then
-                        next_state <= START;
-                        check_done <= false;
+                    --elsif(i_start = '0' and check_done) then
+                     --   next_state <= START;
+                     --   check_done <= false;
                     else 
                         next_state <= DONE;
                     end if;
