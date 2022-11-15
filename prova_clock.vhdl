@@ -111,7 +111,7 @@ architecture behavioural of project_reti_logiche is
                     o_address <= std_logic_vector(unsigned(next_address_read));
                     current_address_read <= std_logic_vector(unsigned(next_address_read));
                     --
-                    if(num_of_word = 0) then
+                    if(num_of_word = 0 or num_of_word > 255) then
                         next_state <= SET_DONE;
                     else
                         next_state <= START_READ;
