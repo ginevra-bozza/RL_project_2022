@@ -1,10 +1,9 @@
-# RL_project_2022
+# Digital Logic Design Project a.a. 2021-22 - Politecnico di Milano
 
-Implementazione del progetto di reti logiche 2022
-
-###Studenti
-[Emanuele Cimino](https://github.com/emacimino) 
+### Final project for the "Reti Logiche" course at Politecnico di Milano
+### Grade: 29/30
+### Students
+[Emanuele Cimino](https://github.com/emacimino) <br>
 [Ginevra Bozza](https://github.com/ginevra-bozza)
 
-###Valutazione finale
-29/30
+
